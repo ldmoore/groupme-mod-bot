@@ -1,0 +1,9 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "groupme-bot",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-08-23",
+	"observability": {
+		"enabled": true
+	}
+}
