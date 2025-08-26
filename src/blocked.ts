@@ -3,7 +3,8 @@ const blocked = [
     "giving away sabrina carpenter",
     "giving away tate mcrae",
     "macbook air",
-    "season ticket"
+    "season ticket",
+    "macbook pro"
 ];
 
 export default blocked;
