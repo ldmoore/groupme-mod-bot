@@ -4,6 +4,7 @@ const blocked = [
     "giving away tate mcrae",
     "macbook air",
     "season ticket",
+    "season football",
     "macbook pro"
 ];
 
