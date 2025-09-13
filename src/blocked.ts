@@ -21,7 +21,10 @@ const blocked = [
     "ps5 out for free",
     "text me on gmail",
     "invited to join my group",
-    "full season pass"
+    "full season pass",
+    "football full season",
+    "full season football",
+    "full football season"
 ];
 
 export default blocked;
