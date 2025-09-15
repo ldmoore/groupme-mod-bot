@@ -24,7 +24,8 @@ const blocked = [
     "full season pass",
     "football full season",
     "full season football",
-    "full football season"
+    "full football season",
+    "full season tickets"
 ];
 
 export default blocked;
