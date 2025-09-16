@@ -25,7 +25,13 @@ const blocked = [
     "football full season",
     "full season football",
     "full football season",
-    "full season tickets"
+    "full season tickets",
+    "individual games",
+    "my tyler the creator tickets",
+    "tickets to kendrick lamar",
+    "my carolina football tickets",
+    "duke basketball game tickets",
+    "duke football game tickets"
 ];
 
 export default blocked;
