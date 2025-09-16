@@ -31,7 +31,20 @@ const blocked = [
     "tickets to kendrick lamar",
     "my carolina football tickets",
     "duke basketball game tickets",
-    "duke football game tickets"
+    "duke football game tickets",
+    "duke football tickets",
+    "duke basketball tickets",
+    "duke tickets",
+    "carolina football tickets",
+    "carolina football game tickets",
+    "carolina basketball tickets",
+    "carolina basketball game tickets",
+    "tyler the creator tickets",
+    "tyler the creator concert tickets",
+    "kendrick lamar tickets",
+    "kendrick lamar concert tickets",
+    "free ps5",
+    "free ps5 giveaway",
 ];
 
 export default blocked;
