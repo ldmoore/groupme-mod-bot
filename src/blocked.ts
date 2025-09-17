@@ -45,6 +45,14 @@ const blocked = [
     "kendrick lamar concert tickets",
     "free ps5",
     "free ps5 giveaway",
+    "struggling to keep up with classes",
+    "message me to get grades up",
+    "i'll make sure your classwork gets done",
+    "boost your grades",
+    "text me for help with online classes",
+    "text me for help with classes",
+    "contact me for help with classes",
+    "contact me for help with online classes",
 ];
 
 export default blocked;
