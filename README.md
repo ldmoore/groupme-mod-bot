@@ -1,4 +1,7 @@
 # GroupMe Ad Auto-Removal
+GroupMe bot for instantly removing spam, scam, and advertisement messages... **BOTS BEGONE 🤬**!
+
+Additions to the filter are welcome, open a PR with changes to `src/blocked.ts`.
 
 ## Cloudflare Workers Setup
 
