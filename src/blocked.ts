@@ -53,6 +53,7 @@ const blocked = [
     "text me for help with classes",
     "contact me for help with classes",
     "contact me for help with online classes",
+    "billie eilish concert",
 ];
 
 export default blocked;
