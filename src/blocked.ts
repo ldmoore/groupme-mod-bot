@@ -25,7 +25,8 @@ const blocked = [
     "football full season",
     "full season football",
     "full football season",
-    "full season tickets"
+    "full season tickets",
+    "billie eilish concert"
 ];
 
 export default blocked;
