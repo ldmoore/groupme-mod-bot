@@ -62,17 +62,19 @@ app.post("/webhook", async (c) => {
       "Remove User"
     );
 
-	await safeFetch(
-		`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
-		{ method: "POST" },
-		"Remove User"
-	);
+    await safeFetch(
+      `https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
+      { method: "POST" },
+      "Remove User"
+    );
 
-	/*await safeFetch(
-		`https://api.groupme.com/v3/bots/post`,
-		{ method: "POST", body: JSON.stringify( { bot_id, text: "BOTS BEGONE 🤬" }) },
-		"Post Bot Message"
-	);*/
+    if (Math.floor(Math.random() * 1000000) === 462926) {
+      await safeFetch(
+        `https://api.groupme.com/v3/bots/post`,
+        { method: "POST", body: JSON.stringify( { bot_id, text: "BOTS BEGONE 🤬" }) },
+        "Post Bot Message"
+      );
+    }
   } else {
     console.log("Message passed moderation check.");
   }
