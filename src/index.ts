@@ -68,11 +68,13 @@ app.post("/webhook", async (c) => {
 		"Remove User"
 	);
 
-	/*await safeFetch(
-		`https://api.groupme.com/v3/bots/post`,
-		{ method: "POST", body: JSON.stringify( { bot_id, text: "BOTS BEGONE 🤬" }) },
-		"Post Bot Message"
-	);*/
+  if (Math.floor(Math.random() * 1000000) === 51515) {
+    await safeFetch(
+      `https://api.groupme.com/v3/bots/post`,
+      { method: "POST", body: JSON.stringify( { bot_id, text: "BOTS BEGONE 🤬" }) },
+      "Post Bot Message"
+    );
+  }
   } else {
     console.log("Message passed moderation check.");
   }
