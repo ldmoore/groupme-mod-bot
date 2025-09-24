@@ -53,6 +53,20 @@ const blocked = [
     "text me for help with classes",
     "contact me for help with classes",
     "contact me for help with online classes",
+    "i'll do your classwork for you",
+    "billie eilish tickets",
+    "sabrina carpenter tickets",
+    "tate mcrae tickets",
+    "free macbook",
+    "free macbook air",
+    "free macbook pro",
+    "giveaway macbook",
+    "giveaway macbook air",
+    "giveaway macbook pro",
+    "selling macbook",
+    "selling macbook air",
+    "selling macbook pro",
+    "sell macbook",
 ];
 
 export default blocked;
