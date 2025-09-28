@@ -17,7 +17,7 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 }
 
 app.post("/webhook", async (c) => {
-  const body = await c.req.json<any>();
+  const body = await c.req.json();
   console.log("Incoming webhook:", JSON.stringify(body));
 
   const text = (body.text || "").toLowerCase();
@@ -27,7 +27,7 @@ app.post("/webhook", async (c) => {
 
   console.log(`Message received in group ${group_id} from user ${sender_user_id}: "${text}"`);
 
-  if (bannedWords.some((w) => text.includes(w))) {
+  if (bannedWords.some((w) => text.includes(w.toLowerCase()))) {
     console.log("Banned content detected:", text);
 
     const token = c.env.GROUPME_ACCESS_TOKEN;
