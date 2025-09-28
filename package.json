@@ -5,12 +5,17 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write ."
   },
   "dependencies": {
     "hono": "^4.6.20"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
     "@types/node": "22.13.0",
     "@types/service-worker-mock": "^2.0.4",
     "wrangler": "^4.32.0"
