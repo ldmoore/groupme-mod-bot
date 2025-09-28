@@ -5,13 +5,13 @@ const app = new Hono<{ Bindings: Env }>();
 
 async function safeFetch(url: string, options?: RequestInit, label?: string) {
   try {
-    console.log(`[HTTP] Request${label ? " - " + label : ""}:`, url, options || {});
+    console.log(`[HTTP] Request${label ? ` - ${label}` : ""}:`, url, options || {});
     const res = await fetch(url, options);
     const text = await res.text(); // log raw in case JSON parsing fails
-    console.log(`[HTTP] Response${label ? " - " + label : ""}:`, res.status, text);
+    console.log(`[HTTP] Response${label ? ` - ${label}` : ""}:`, res.status, text);
     return { res, text };
   } catch (err) {
-    console.error(`[HTTP] Error${label ? " - " + label : ""}:`, err);
+    console.error(`[HTTP] Error${label ? ` - ${label}` : ""}:`, err);
     throw err;
   }
 }
@@ -40,8 +40,9 @@ app.post("/webhook", async (c) => {
       "Get Group Data"
     );
     const groupData = JSON.parse(groupRaw);
+    type GroupMember = { user_id: string; id: string }; 
     const member = groupData.response.members.find(
-      (m: any) => m.user_id === sender_user_id
+      (m: GroupMember) => m.user_id === sender_user_id
     );
     if (!member) {
       console.warn(`⚠️ User ${sender_user_id} not found in group ${group_id}`);
