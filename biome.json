@@ -6,7 +6,8 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": ["**/*.{js,ts,json}", "!worker-configuration.d.ts"]
 	},
 	"formatter": {
 		"enabled": true,
