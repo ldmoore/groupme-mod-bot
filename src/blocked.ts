@@ -68,7 +68,8 @@ const blocked = [
     "selling macbook pro",
     "sell macbook",
     "nude",
-    "horny"
+    "horny",
+    "tate mcrae",
 ];
 
 export default blocked;
