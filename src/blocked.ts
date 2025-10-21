@@ -70,7 +70,7 @@ const blocked = [
 	"nude",
 	"horny",
 	"tate mcrae",
-	"megan moroney"
+	"megan moroney",
 ];
 
 export default blocked;
