@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import bannedWords from "./blocked";
+import containsBlockedWord from "./blocked-words";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -24,6 +25,10 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 	}
 }
 
+function isIlligalMessage(message: string): boolean {
+	return containsBlockedWord(message);
+}
+
 app.post("/webhook", async (c) => {
 	const body = await c.req.json();
 	console.log("Incoming webhook:", JSON.stringify(body));
@@ -37,7 +42,7 @@ app.post("/webhook", async (c) => {
 		`Message received in group ${group_id} from user ${sender_user_id}: "${text}"`,
 	);
 
-	if (bannedWords.some((w) => text.includes(w.toLowerCase()))) {
+	if (isIlligalMessage(text)) {
 		console.log("Banned content detected:", text);
 
 		const token = c.env.GROUPME_ACCESS_TOKEN;

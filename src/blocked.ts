@@ -1,4 +1,4 @@
-const blocked = [
+const blocked: string[] = [
 	"giving away billie eilish",
 	"giving away sabrina carpenter",
 	"giving away tate mcrae",
