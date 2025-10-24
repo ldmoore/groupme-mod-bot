@@ -1,4 +1,4 @@
-// Filter for blocked keywords in messages. 
+// Filter for blocked keywords in messages.
 // Filters based on keywords and the order they appear in the message.
 // Matches if the words appear in a message in the order given, even if there are words between them.
 
@@ -68,7 +68,7 @@ const blockedKeywords: string[] = [
 	"selling macbook air",
 	"selling macbook pro",
 	"sell macbook",
-    "click the link",
+	"click the link",
 	"check my bio",
 	"dm me for collab",
 	"message me for promotion",
@@ -80,29 +80,28 @@ const blockedKeywords: string[] = [
 	"join my team",
 ];
 
-
 /**
- * 
+ *
  * @param message - The message to check.
  * @returns - True if the message contains a blocked keyword, false otherwise.
  */
 export default function containsBlockedKeyword(message: string): boolean {
-    const lowerMessage: string = message.toLowerCase();
-    let found: boolean = false;
-    for (const keyword of blockedKeywords) {
-        const parts: string[] = keyword.toLowerCase().split(/\s+/);
-        let currentIndex: number = 0;
-        for (const part of parts) {
-            currentIndex = lowerMessage.indexOf(part, currentIndex);
-            if (currentIndex === -1) {
-                found = false;
-                break;
-            }
-            currentIndex += part.length;
-        }
-        if (found) {
-            return true;
-        }
-    }
-    return false;
+	const lowerMessage: string = message.toLowerCase();
+	let found: boolean = false;
+	for (const keyword of blockedKeywords) {
+		const parts: string[] = keyword.toLowerCase().split(/\s+/);
+		let currentIndex: number = 0;
+		for (const part of parts) {
+			currentIndex = lowerMessage.indexOf(part, currentIndex);
+			if (currentIndex === -1) {
+				found = false;
+				break;
+			}
+			currentIndex += part.length;
+		}
+		if (found) {
+			return true;
+		}
+	}
+	return false;
 }

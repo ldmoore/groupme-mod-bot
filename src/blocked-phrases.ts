@@ -1,4 +1,4 @@
-// Filter for blocked phrases in messages. 
+// Filter for blocked phrases in messages.
 
 const blockedPhrases: string[] = [
 	"click the link below",
@@ -9,18 +9,17 @@ const blockedPhrases: string[] = [
 	"you have been selected",
 ];
 
-
 /**
- * 
+ *
  * @param message - The message to check.
  * @returns - True if the message contains a blocked phrase, false otherwise.
  */
 export default function containsBlockedPhrase(message: string): boolean {
-    const lowerMessage: string = message.toLowerCase();
-    for (const phrase of blockedPhrases) {
-        if (lowerMessage.includes(phrase.toLowerCase())) {
-            return true;
-        }
-    }
-    return false;
+	const lowerMessage: string = message.toLowerCase();
+	for (const phrase of blockedPhrases) {
+		if (lowerMessage.includes(phrase.toLowerCase())) {
+			return true;
+		}
+	}
+	return false;
 }

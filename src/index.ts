@@ -27,7 +27,11 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 }
 
 function isIlligalMessage(message: string): boolean {
-	return containsBlockedWord(message) || containsBlockedKeyword(message) || containsBlockedPhrase(message);
+	return (
+		containsBlockedWord(message) ||
+		containsBlockedKeyword(message) ||
+		containsBlockedPhrase(message)
+	);
 }
 
 app.post("/webhook", async (c) => {
