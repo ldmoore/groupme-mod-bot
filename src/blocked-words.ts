@@ -17,6 +17,10 @@ const blockedWords: string[] = [
 	"followers",
 	"promo",
 	"bot",
+    "megan moroney",
+    "billie eilish",
+    "sabrina carpenter",
+    "tate mcrae",
 ];
 
 /**
