@@ -1,5 +1,6 @@
 import { Hono } from "hono";
-import bannedWords from "./blocked";
+import containsBlockedKeyword from "./blocked-keywords";
+import containsBlockedPhrase from "./blocked-phrases";
 import containsBlockedWord from "./blocked-words";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -26,7 +27,7 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 }
 
 function isIlligalMessage(message: string): boolean {
-	return containsBlockedWord(message);
+	return containsBlockedWord(message) || containsBlockedKeyword(message) || containsBlockedPhrase(message);
 }
 
 app.post("/webhook", async (c) => {

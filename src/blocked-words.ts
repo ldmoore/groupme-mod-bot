@@ -1,12 +1,22 @@
 // Filter for blocked words. Matches if the message contains any of the strings exactly 
 // (ie. not as substrings of other words or with space between two words in a given string).
 
-const blocked: string[] = [
+const blockedWords: string[] = [
 	"nude",
 	"horny",
-	"tate mcrae",
-	"megan moroney",
-	"lease",
+	"cashapp",
+	"venmo",
+	"paypal",
+	"crypto",
+	"bitcoin",
+	"telegram",
+	"whatsapp",
+	"discord",
+	"onlyfans",
+	"giveaway",
+	"followers",
+	"promo",
+	"bot",
 ];
 
 /**
@@ -33,7 +43,7 @@ function wordToPattern(w: string): string {
 //  - the blocked word (supports multi-word entries via \s+ between parts)
 //  - followed by one of: 's  OR punctuation . , ? !  OR whitespace OR end of string
 const pattern: RegExp = new RegExp(
-	`(^|\\s)(?:${blocked.map(wordToPattern).join('|')})(?:'s|[.,?!]|\\s|$)`,
+	`(^|\\s)(?:${blockedWords.map(wordToPattern).join('|')})(?:'s|[.,?!]|\\s|$)`,
 	'iu'
 );
 
