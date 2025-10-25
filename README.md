@@ -14,9 +14,27 @@ Additions to the filter are welcome, open a PR with changes to `src/blocked.ts`.
 
 **Blocked Words:**
 
-- Edit `src/blocked.ts`
+- Exact words that would constitute a removal. 
+    - Ex. "giveaway", "promo", "tate mcrae"
+    - "tate mcrae" is considered one word because "tate" will always appear next to "mcrae"
+- Edit `src/blocked-words.ts`
+
+**Blocked Phrases**
+
+- Exact phrases that would constitute a removal. 
+    - Ex. "lick the link below", "free cash giveaway"
+- Edit `src/blocked-phrases.ts`
+
+**Blocked Keywords**
+
+- Groupings of words that when appearing in the given order constitutes a removal. Only cares about the order in which the words appear, not what might be between them. 
+    - Ex. "tyler the creator tickets", "free macbook air", "selling lease"
+    - This would catch the messages: "Hi! I'm selling my lease." and "Hi! My roommate is selling her lease."
+- Edit `src/blocked-keywords.ts`
 
 **Secrets:**
 
 - Set `GROUPME_ACCESS_TOKEN` to your personal account access token. It will delete messages as you.
 - Set `GROUPME_BOT_ID` to your GroupMe bot ID
+
+**Contributing**
