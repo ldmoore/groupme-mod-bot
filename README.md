@@ -38,3 +38,5 @@ Additions to the filter are welcome, open a PR with changes to `src/blocked.ts`.
 - Set `GROUPME_BOT_ID` to your GroupMe bot ID
 
 **Contributing**
+
+Review the docs on [contributing](/CONTRIBUTING.md).

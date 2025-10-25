@@ -23,20 +23,10 @@ const blockedWords: string[] = [
 	"tate mcrae",
 ];
 
-/**
- * Escapes special characters in a string for use in a regular expression.
- * @param s - The string to escape.
- * @returns The escaped string.
- */
 function escapeRegExp(s: string): string {
 	return s.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
 }
 
-/**
- * Converts a word or phrase into a regex pattern.
- * @param w - The word or phrase to convert.
- * @returns The regex pattern.
- */
 function wordToPattern(w: string): string {
 	const parts = w.trim().split(/\s+/).map(escapeRegExp);
 	return parts.join("\\s+");
