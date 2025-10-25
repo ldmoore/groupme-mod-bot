@@ -22,7 +22,7 @@ Additions to the filter are welcome, open a PR with changes to `src/blocked.ts`.
 **Blocked Phrases**
 
 - Exact phrases that would constitute a removal. 
-    - Ex. "lick the link below", "free cash giveaway"
+    - Ex. "click the link below", "free cash giveaway"
 - Edit `src/blocked-phrases.ts`
 
 **Blocked Keywords**
