@@ -5,6 +5,7 @@ declare namespace Cloudflare {
 	interface Env {
         GROUPME_ACCESS_TOKEN: string;
         GROUPME_BOT_ID: string;
+		STAGING: string?;
 	}
 }
 interface Env extends Cloudflare.Env {}

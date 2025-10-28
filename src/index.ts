@@ -47,11 +47,26 @@ app.post("/webhook", async (c) => {
 		`Message received in group ${group_id} from user ${sender_user_id}: "${text}"`,
 	);
 
+	const staging = !!c.env.STAGING;
+
 	if (isIllegalMessage(text)) {
 		console.log("Banned content detected:", text);
 
 		const token = c.env.GROUPME_ACCESS_TOKEN;
 		const bot_id = c.env.GROUPME_BOT_ID;
+
+		// Staging instance will not remove users, only flag the message
+		if (staging) {
+			await safeFetch(
+				`https://api.groupme.com/v3/bots/post`,
+				{
+					method: "POST",
+					body: JSON.stringify({ bot_id, text: "BOTS BEGONE 🤬" }),
+				},
+				"Post Bot Message",
+			);
+			return;
+		}
 
 		console.log("Fetching group data to resolve membership_id...");
 		const { text: groupRaw } = await safeFetch(
