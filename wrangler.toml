@@ -4,3 +4,6 @@ compatibility_date = "2025-08-23"
 
 [observability]
 enabled = true
+
+[env.staging]
+name = "groupme-bot-staging"
