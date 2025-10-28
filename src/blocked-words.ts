@@ -5,11 +5,6 @@ const blockedWords: string[] = [
 	"nude",
 	"horny",
 	"crypto",
-	"bitcoin",
-	"telegram",
-	"onlyfans",
-	"giveaway",
-	"followers",
 	"promo",
 	"megan moroney",
 	"billie eilish",
@@ -31,9 +26,9 @@ function wordToPattern(w: string): string {
 // Build a single regex that matches when a blocked word is:
 //  - at the start or preceded by whitespace: (^|\s)
 //  - the blocked word (supports multi-word entries via \s+ between parts)
-//  - followed by one of: 's  OR punctuation . , ? !  OR whitespace OR end of string
+//  - followed by one of: 's  OR s (plural)  OR punctuation . , ? !  OR whitespace OR end of string
 const pattern: RegExp = new RegExp(
-	`(^|\\s)(?:${blockedWords.map(wordToPattern).join("|")})(?:'s|[.,?!]|\\s|$)`,
+	`(^|\\s)(?:${blockedWords.map(wordToPattern).join("|")})(?:'s|s|[.,?!]|\\s|$)`,
 	"iu",
 );
 

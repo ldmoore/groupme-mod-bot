@@ -1,5 +1,5 @@
-// Filter for blocked keywords in messages.
-// Filters based on keywords and the order they appear in the message.
+// Filter for blocked sequences in messages.
+// Filters based on sequences and the order they appear in the message.
 // Matches if the words appear in a message in the order given, even if there are words between them.
 
 const blockedSequences: string[] = [
@@ -83,7 +83,7 @@ const blockedSequences: string[] = [
 /**
  *
  * @param message - The message to check.
- * @returns - True if the message contains a blocked keyword, false otherwise.
+ * @returns - True if the message contains a blocked sequence, false otherwise.
  */
 export default function containsBlockedSequence(message: string): boolean {
 	const lowerMessage: string = message.toLowerCase();
