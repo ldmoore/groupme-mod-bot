@@ -2,7 +2,7 @@
 // Filters based on keywords and the order they appear in the message.
 // Matches if the words appear in a message in the order given, even if there are words between them.
 
-const blockedKeywords: string[] = [
+const blockedSequences: string[] = [
 	"giving away billie eilish",
 	"giving away sabrina carpenter",
 	"giving away tate mcrae",
@@ -85,11 +85,11 @@ const blockedKeywords: string[] = [
  * @param message - The message to check.
  * @returns - True if the message contains a blocked keyword, false otherwise.
  */
-export default function containsBlockedKeyword(message: string): boolean {
+export default function containsBlockedSequence(message: string): boolean {
 	const lowerMessage: string = message.toLowerCase();
 	let found: boolean = false;
-	for (const keyword of blockedKeywords) {
-		const parts: string[] = keyword.toLowerCase().split(/\s+/);
+	for (const sequence of blockedSequences) {
+		const parts: string[] = sequence.toLowerCase().split(/\s+/);
 		let currentIndex: number = 0;
 		for (const part of parts) {
 			currentIndex = lowerMessage.indexOf(part, currentIndex);

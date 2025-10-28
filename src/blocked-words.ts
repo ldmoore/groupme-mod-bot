@@ -4,23 +4,19 @@
 const blockedWords: string[] = [
 	"nude",
 	"horny",
-	"cashapp",
-	"venmo",
-	"paypal",
 	"crypto",
 	"bitcoin",
 	"telegram",
-	"whatsapp",
-	"discord",
 	"onlyfans",
 	"giveaway",
 	"followers",
 	"promo",
-	"bot",
 	"megan moroney",
 	"billie eilish",
 	"sabrina carpenter",
 	"tate mcrae",
+	"olivia rodrigo",
+	"ariana grande",
 ];
 
 function escapeRegExp(s: string): string {
