@@ -17,7 +17,7 @@ Before contributing, please:
 - Keep each issue focused—one topic per issue.
 
 ### 2. Create a Branch
-Use descriptive branch names:
+Pull from the `staging` branch and use descriptive branch names:
 ```
 feature/add-new-filter
 fix/deletion-timing-bug
@@ -34,6 +34,7 @@ docs/improve-readme
 1. Keep your PR clear and concise.
 2. Explain **why** the change matters.
 3. Be patient. 
+4. PRs should be made against the `staging` branch except when promoting changes from `staging` to `main`.
 
 ---
 

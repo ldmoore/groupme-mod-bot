@@ -1,16 +1,7 @@
 # GroupMe Ad Auto-Removal
 GroupMe bot for instantly removing spam, scam, and advertisement messages... **BOTS BEGONE 🤬**!
 
-Additions to the filter are welcome, open a PR with changes to `src/blocked.ts`.
-
-## Cloudflare Workers Setup
-
-1. Sign up for [Cloudflare Workers](https://workers.dev). The free tier is more than enough for most use cases.
-2. Clone this project and install dependencies with `npm install`
-3. Run `wrangler login` to login to your Cloudflare account in wrangler
-4. Run `wrangler deploy` to publish the API to Cloudflare Workers
-
-## Configuration (set on Cloudflare)
+Additions to the filter are welcome, open a PR with changes to one or more of the following lists:
 
 **Blocked Words:**
 
@@ -32,10 +23,24 @@ Additions to the filter are welcome, open a PR with changes to `src/blocked.ts`.
     - This would catch the messages: "Hi! I'm selling my lease." and "Hi! My roommate is selling her lease."
 - Edit `src/blocked-sequences.ts`
 
+## Cloudflare Workers Setup
+
+1. Sign up for [Cloudflare Workers](https://workers.dev). The free tier is more than enough for most use cases.
+2. Clone this project and install dependencies with `npm install`
+3. Run `wrangler login` to login to your Cloudflare account in wrangler
+4. Run `wrangler deploy` to publish the API to Cloudflare Workers
+
+## Configuration (set on Cloudflare)
+
 **Secrets:**
 
 - Set `GROUPME_ACCESS_TOKEN` to your personal account access token. It will delete messages as you.
 - Set `GROUPME_BOT_ID` to your GroupMe bot ID
+
+## Staging
+The `main` branch is the live, automatically deployed version of Bots Begone.
+
+The `staging` branch is automatically deployed on the [testing GroupMe](https://groupme.com/join_group/109616610/4Lu7g3V8). Messages flagged in the testing group will not result in removal, but rather a **BOTS BEGONE 🤬** message indicating that it was caught by the filter.
 
 **Contributing**
 
