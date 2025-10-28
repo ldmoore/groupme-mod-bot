@@ -1,4 +1,8 @@
-const blocked = [
+// Filter for blocked sequences in messages.
+// Filters based on sequences and the order they appear in the message.
+// Matches if the words appear in a message in the order given, even if there are words between them.
+
+const blockedSequences: string[] = [
 	"giving away billie eilish",
 	"giving away sabrina carpenter",
 	"giving away tate mcrae",
@@ -54,9 +58,6 @@ const blocked = [
 	"contact me for help with classes",
 	"contact me for help with online classes",
 	"i'll do your classwork for you",
-	"billie eilish tickets",
-	"sabrina carpenter tickets",
-	"tate mcrae tickets",
 	"free macbook",
 	"free macbook air",
 	"free macbook pro",
@@ -67,10 +68,40 @@ const blocked = [
 	"selling macbook air",
 	"selling macbook pro",
 	"sell macbook",
-	"nude",
-	"horny",
-	"tate mcrae",
-	"megan moroney",
+	"click the link",
+	"check my bio",
+	"dm me for collab",
+	"message me for promotion",
+	"contact me for help with classes",
+	"i'll do your classwork for you",
+	"boost your grades",
+	"free iphone",
+	"win a macbook",
+	"join my team",
 ];
 
-export default blocked;
+/**
+ *
+ * @param message - The message to check.
+ * @returns - True if the message contains a blocked sequence, false otherwise.
+ */
+export default function containsBlockedSequence(message: string): boolean {
+	const lowerMessage: string = message.toLowerCase();
+	let found: boolean = false;
+	for (const sequence of blockedSequences) {
+		const parts: string[] = sequence.toLowerCase().split(/\s+/);
+		let currentIndex: number = 0;
+		for (const part of parts) {
+			currentIndex = lowerMessage.indexOf(part, currentIndex);
+			if (currentIndex === -1) {
+				found = false;
+				break;
+			}
+			currentIndex += part.length;
+		}
+		if (found) {
+			return true;
+		}
+	}
+	return false;
+}
