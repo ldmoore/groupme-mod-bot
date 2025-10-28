@@ -25,12 +25,12 @@ Additions to the filter are welcome, open a PR with changes to `src/blocked.ts`.
     - Ex. "click the link below", "free cash giveaway"
 - Edit `src/blocked-phrases.ts`
 
-**Blocked Keywords**
+**Blocked Sequences**
 
 - Groupings of words that when appearing in the given order constitutes a removal. Only cares about the order in which the words appear, not what might be between them. 
     - Ex. "tyler the creator tickets", "free macbook air", "selling lease"
     - This would catch the messages: "Hi! I'm selling my lease." and "Hi! My roommate is selling her lease."
-- Edit `src/blocked-keywords.ts`
+- Edit `src/blocked-sequences.ts`
 
 **Secrets:**
 
