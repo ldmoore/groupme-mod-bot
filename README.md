@@ -45,3 +45,7 @@ The `staging` branch is automatically deployed on the [testing GroupMe](https://
 **Contributing**
 
 Review the docs on [contributing](/CONTRIBUTING.md).
+
+**Testing**
+
+Review the docs on [testing](/test/TESTING.md).
