@@ -87,10 +87,10 @@ const blockedSequences: string[] = [
  */
 export default function containsBlockedSequence(message: string): boolean {
 	const lowerMessage: string = message.toLowerCase();
-	let found: boolean = false;
 	for (const sequence of blockedSequences) {
 		const parts: string[] = sequence.toLowerCase().split(/\s+/);
 		let currentIndex: number = 0;
+		let found: boolean = true;
 		for (const part of parts) {
 			currentIndex = lowerMessage.indexOf(part, currentIndex);
 			if (currentIndex === -1) {
