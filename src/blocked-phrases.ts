@@ -1,6 +1,6 @@
 // Filter for blocked phrases in messages.
 
-const blockedPhrases: string[] = [
+export const blockedPhrases: string[] = [
 	"click the link below",
 	"contact me on whatsapp",
 	"contact me on telegram",

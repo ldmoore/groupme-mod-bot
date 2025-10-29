@@ -22,9 +22,10 @@
 		"types": [
 			"./worker-configuration.d.ts",
 			"@types/node",
-			"@types/service-worker-mock"
+			"@types/service-worker-mock",
+			"@types/jest"
 		]
 	},
-	"exclude": ["node_modules", "dist", "tests"],
-	"include": ["src", "worker-configuration.d.ts"]
+	"exclude": ["node_modules", "dist"],
+	"include": ["src", "test", "worker-configuration.d.ts"]
 }

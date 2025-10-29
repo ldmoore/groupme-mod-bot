@@ -5,6 +5,14 @@ import containsBlockedWord from "./blocked-words";
 
 const app = new Hono<{ Bindings: Env }>();
 
+export function isIllegalMessage(message: string): boolean {
+	return (
+		containsBlockedWord(message) ||
+		containsBlockSequence(message) ||
+		containsBlockedPhrase(message)
+	);
+}
+
 async function safeFetch(url: string, options?: RequestInit, label?: string) {
 	try {
 		console.log(
@@ -24,14 +32,6 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 		console.error(`[HTTP] Error${label ? ` - ${label}` : ""}:`, err);
 		throw err;
 	}
-}
-
-function isIllegalMessage(message: string): boolean {
-	return (
-		containsBlockedWord(message) ||
-		containsBlockSequence(message) ||
-		containsBlockedPhrase(message)
-	);
 }
 
 app.post("/webhook", async (c) => {
