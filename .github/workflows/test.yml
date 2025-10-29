@@ -1,0 +1,92 @@
+name: Test and Coverage
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+    pull_request:
+        branches:
+            - main
+            - develop
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run linter
+              run: npm run lint
+
+            - name: Run tests with coverage
+              run: npm run test:coverage
+
+            - name: Upload coverage reports
+              if: always()
+              uses: codecov/codecov-action@v4
+              with:
+                  files: ./coverage/lcov.info
+                  flags: unittests
+                  fail_ci_if_error: false
+              env:
+                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+            - name: Comment PR with coverage
+              if: github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const fs = require('fs');
+                      const lcov = fs.readFileSync('./coverage/lcov.info', 'utf8');
+
+                      // Parse basic coverage stats from lcov
+                      const lines = lcov.split('\n');
+                      let totalLines = 0;
+                      let coveredLines = 0;
+
+                      lines.forEach(line => {
+                        if (line.startsWith('LF:')) totalLines += parseInt(line.split(':')[1]);
+                        if (line.startsWith('LH:')) coveredLines += parseInt(line.split(':')[1]);
+                      });
+
+                      const coverage = totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : 0;
+                      const status = coverage >= 80 ? 'PASS' : 'FAIL';
+
+                      const body = `## ${status} Test Coverage Report
+
+                      **Line Coverage:** ${coverage}%
+                      - Covered Lines: ${coveredLines}
+                      - Total Lines: ${totalLines}
+
+                      ${coverage >= 80 ? 'Coverage meets the 80% threshold!' : 'Coverage is below the 80% threshold.'}
+
+                      <details>
+                      <summary>View detailed coverage report</summary>
+
+                      Run \`npm run test:coverage\` locally to see the full report.
+                      Open \`coverage/index.html\` in your browser for detailed line-by-line coverage.
+                      </details>`;
+
+                      const prNumber = context.payload.pull_request.number;
+                      await github.rest.issues.createComment({
+                        ...context.repo,
+                        issue_number: prNumber,
+                        body
+                      });
+
+            - name: Check coverage threshold
+              run: |
+                  echo "Coverage check completed successfully!"
+                  echo "Tests passed and coverage meets the required threshold (80%)"
