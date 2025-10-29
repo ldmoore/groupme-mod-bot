@@ -55,3 +55,7 @@ Inspired by [MDN Web Docs’ Open Source Etiquette](https://developer.mozilla.or
 - Use Biome 2.3.0 for formatting conventions.
 - Keep code readable and consistent.
 - Comment clearly when logic is non-obvious.
+
+## Testing
+
+View the docs on [testing](/test/TESTING.md).

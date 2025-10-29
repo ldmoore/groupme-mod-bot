@@ -100,26 +100,47 @@ test("car selling scam", () => {
 });
 ```
 
-### 4. `integration.test.ts`
+### 4. `webhook-handler.test.ts`
 
-Tests the complete `isIllegalMessage()` function that combines all three blocking mechanisms.
+Tests the webhook handler and message processing logic. This is the most comprehensive test file covering the entire bot workflow.
 
-**Features tested:**
-- End-to-end message validation
-- Combination of multiple blocking rules
-- Real-world spam examples
-- Safe message validation
+**Components tested:**
+
+#### `isIllegalMessage()` Function
+- Blocked words detection
+- Blocked phrases detection
+- Blocked sequences detection
+- Clean message validation
 - Empty message handling
 
-**Test messages:**
-- "Hello, how are you?" - Clean message (expected: false)
-- "This message is safe and clean." - Clean message (expected: false)
-- Real spam example with phone number and DM request (expected: true)
+#### `groupMeWebhookHandler()` Function
+- **Clean message handling**: Returns OK status without taking action
+- **Staging mode**: Posts bot message without removing users
+- **Production mode**: Deletes message and removes offending user
+- **User not found handling**: Returns appropriate error when user isn't in group
+- **Case sensitivity**: Detects spam regardless of case
+- **Real-world spam examples**: Tests actual spam messages (car scams, ticket scams)
+- **Error handling**: Handles network errors during API calls
+- **Random bot message**: Tests the rare easter egg bot message
+- **Logging coverage**: Tests console logging for HTTP requests/responses/errors
 
 **Example:**
 ```typescript
-test(`blocked phrase test: "[message content]"`, () => {
-  expect(isIllegalMessage(msg.content)).toBe(msg.expected);
+test("should delete message and remove user for illegal content", async () => {
+  // Mock webhook request with spam content
+  (mockContext.req?.json as jest.Mock)?.mockResolvedValue({
+    text: "Click the link below to buy crypto",
+    group_id: "12345",
+    id: "msg_001",
+    sender_id: "user_001",
+  });
+
+  // ... mock API responses ...
+
+  await groupMeWebhookHandler(mockContext as Context);
+
+  // Verify fetch was called 4 times: get group, delete message, remove user x2
+  expect(mockFetch).toHaveBeenCalledTimes(4);
 });
 ```
 
@@ -149,9 +170,9 @@ test("your sequence description", () => {
 });
 ```
 
-### To add an integration test:
+### To add a webhook handler test:
 
-Add a new entry to the `testMessages` array:
+Add a new test in the appropriate `describe` block:
 
 ```typescript
 const testMessages: TestMessage[] = [
