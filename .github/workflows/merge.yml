@@ -1,0 +1,87 @@
+name: Fast-Forward Merge
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fast-forward-merge:
+    if: github.event.label.name == 'MERGE'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify user is maintainer
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const actor = context.actor;
+            const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo,
+              username: actor,
+            });
+            const allowed = ['admin', 'maintain', 'write'];
+            if (!allowed.includes(perm.permission)) {
+              core.setFailed(`🚫 ${actor} does not have permission to perform merges (has '${perm.permission}').`);
+            }
+
+      - name: Checkout repository
+        if: success()
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base and head branches
+        if: success()
+        run: |
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+          git fetch origin "$BASE_BRANCH" "$HEAD_BRANCH"
+
+      - name: Attempt fast-forward merge
+        if: success()
+        id: ffmerge
+        run: |
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          set -e
+          git checkout "$BASE_BRANCH"
+          if git merge --ff-only "origin/$HEAD_BRANCH"; then
+            git push origin "$BASE_BRANCH"
+            echo "merged=true" >> $GITHUB_OUTPUT
+          else
+            echo "merged=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const merged = '${{ steps.ffmerge.outputs.merged }}' === 'true';
+            const body = merged
+              ? "PR merged into **${{ github.event.pull_request.base.ref }}**."
+              : "Fast-forward merge failed — branches have diverged. Please rebase or merge **${{ github.event.pull_request.base.ref }}** into **${{ github.event.pull_request.head.ref }}** first.";
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: prNumber,
+              body
+            });
+
+      - name: Remove MERGE label
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            await github.rest.issues.removeLabel({
+              ...context.repo,
+              issue_number: prNumber,
+              name: 'MERGE'
+            }).catch(() => {});
