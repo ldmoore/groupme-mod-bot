@@ -6,8 +6,8 @@ import containsBlockedWord from "./blocked-words";
 export function isIllegalMessage(message: string): boolean {
 	return (
 		containsBlockedWord(message) ||
-		containsBlockSequence(message) ||
-		containsBlockedPhrase(message)
+		containsBlockedPhrase(message) ||
+		containsBlockSequence(message)
 	);
 }
 
@@ -47,7 +47,7 @@ export async function groupMeWebhookHandler(c: Context) {
 
 	const staging = !!c.env.STAGING;
 
-	if (isIllegalMessage(text)) {
+	if (isIllegalMessage(text).valueOf()) {
 		console.log("Banned content detected:", text);
 
 		const token = c.env.GROUPME_ACCESS_TOKEN;

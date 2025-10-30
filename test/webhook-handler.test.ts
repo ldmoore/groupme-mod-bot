@@ -36,67 +36,79 @@ describe("isIllegalMessage", () => {
 	describe("test messages", () => {
 		for (const msg of testMessages) {
 			test(`blocked phrase test: "${msg.content.toLowerCase()}"`, () => {
-				expect(isIllegalMessage(msg.content)).toBe(msg.expected);
+				expect(isIllegalMessage(msg.content).valueOf()).toBe(msg.expected);
 			});
 		}
 
 		test("empty message", () => {
-			expect(isIllegalMessage("")).toBe(false);
+			expect(isIllegalMessage("").valueOf()).toBe(false);
 		});
 	});
 
 	describe("blocked phrases", () => {
 		test("should detect 'click the link below'", () => {
-			expect(isIllegalMessage("Please click the link below to verify")).toBe(
-				true,
-			);
+			expect(
+				isIllegalMessage("Please click the link below to verify").valueOf(),
+			).toBe(true);
 		});
 
 		test("should detect 'contact me on whatsapp'", () => {
-			expect(isIllegalMessage("You can contact me on whatsapp")).toBe(true);
-		});
-
-		test("should detect 'verify your account'", () => {
-			expect(isIllegalMessage("Please verify your account to continue")).toBe(
+			expect(isIllegalMessage("You can contact me on whatsapp").valueOf()).toBe(
 				true,
 			);
 		});
 
+		test("should detect 'verify your account'", () => {
+			expect(
+				isIllegalMessage("Please verify your account to continue").valueOf(),
+			).toBe(true);
+		});
+
 		test("should detect 'free cash giveaway'", () => {
-			expect(isIllegalMessage("Join our free cash giveaway now!")).toBe(true);
+			expect(
+				isIllegalMessage("Join our free cash giveaway now!").valueOf(),
+			).toBe(true);
 		});
 	});
 
 	describe("blocked sequences", () => {
 		test("should detect ticket giveaways", () => {
-			expect(isIllegalMessage("giving away free billie eilish tickets")).toBe(
+			expect(
+				isIllegalMessage("giving away free billie eilish tickets").valueOf(),
+			).toBe(true);
+		});
+
+		test("should detect product sales", () => {
+			expect(
+				isIllegalMessage("Selling my macbook air for cheap").valueOf(),
+			).toBe(true);
+		});
+
+		test("should detect season pass scams", () => {
+			expect(isIllegalMessage("Get your full season pass now").valueOf()).toBe(
 				true,
 			);
 		});
 
-		test("should detect product sales", () => {
-			expect(isIllegalMessage("Selling my macbook air for cheap")).toBe(true);
-		});
-
-		test("should detect season pass scams", () => {
-			expect(isIllegalMessage("Get your full season pass now")).toBe(true);
-		});
-
 		test("should detect car selling scams", () => {
 			expect(
-				isIllegalMessage("Clean used 2012 Honda Accord for sale for $3000"),
+				isIllegalMessage(
+					"Clean used 2012 Honda Accord for sale for $3000",
+				).valueOf(),
 			).toBe(true);
 		});
 	});
 
 	describe("clean messages", () => {
 		test("should allow normal conversation", () => {
-			expect(isIllegalMessage("Hello, how are you?")).toBe(false);
-			expect(isIllegalMessage("This message is safe and clean")).toBe(false);
+			expect(isIllegalMessage("Hello, how are you?").valueOf()).toBe(false);
+			expect(isIllegalMessage("This message is safe and clean").valueOf()).toBe(
+				false,
+			);
 		});
 
 		test("should handle empty messages", () => {
-			expect(isIllegalMessage("")).toBe(false);
+			expect(isIllegalMessage("").valueOf()).toBe(false);
 		});
 	});
 });
@@ -107,6 +119,7 @@ describe("groupMeWebhookHandler", () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		mockFetch.mockReset();
 
 		mockContext = {
 			req: {
@@ -541,16 +554,38 @@ describe("groupMeWebhookHandler", () => {
 
 		test("should log without label parameter", async () => {
 			mockConsoleLog.mockClear();
-			const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
-				text: async () => JSON.stringify({ test: "response" }),
+				text: async () =>
+					JSON.stringify({
+						response: {
+							members: [{ user_id: "user_001", id: "member_001" }],
+						},
+					}),
+			} as Response);
+
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				text: async () => JSON.stringify({ success: true }),
+			} as Response);
+
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				text: async () => JSON.stringify({ success: true }),
+			} as Response);
+
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
 			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "test message",
+				text: "crypto",
 				group_id: "12345",
 				id: "msg_001",
 				sender_id: "user_001",
@@ -558,7 +593,11 @@ describe("groupMeWebhookHandler", () => {
 
 			await groupMeWebhookHandler(mockContext as Context);
 
-			expect(mockConsoleLog).toHaveBeenCalled();
+			expect(mockConsoleLog).toHaveBeenCalledWith(
+				expect.stringMatching(/\[HTTP\] Response - /),
+				expect.any(Number),
+				expect.any(String),
+			);
 		});
 	});
 });

@@ -184,6 +184,15 @@ const testMessages: TestMessage[] = [
 ];
 ```
 
+## Local Testing
+
+The script in `./blockedCheck.ts` can be used to test `isIllegalMessage`. 
+To execute, run 
+
+```bash
+npm run check
+```
+
 ## Configuration
 
 Jest is configured via `jest.config.js`:
