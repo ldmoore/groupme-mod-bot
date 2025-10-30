@@ -2,19 +2,13 @@ import type { Context } from "hono";
 import containsBlockedPhrase from "./blocked-phrases";
 import containsBlockSequence from "./blocked-sequences";
 import containsBlockedWord from "./blocked-words";
-import { IllegalContentType, IllegalMessageResult } from "./types";
 
-export function isIllegalMessage(message: string): IllegalMessageResult {
-	if (containsBlockedWord(message)) {
-		return new IllegalMessageResult(true, IllegalContentType.Word);
-	}
-	if (containsBlockSequence(message)) {
-		return new IllegalMessageResult(true, IllegalContentType.Sequence);
-	}
-	if (containsBlockedPhrase(message)) {
-		return new IllegalMessageResult(true, IllegalContentType.Phrase);
-	}
-	return new IllegalMessageResult(false, IllegalContentType.None);
+export function isIllegalMessage(message: string): boolean {
+	return (
+		containsBlockedWord(message) ||
+		containsBlockedPhrase(message) ||
+		containsBlockSequence(message)
+	);
 }
 
 async function safeFetch(url: string, options?: RequestInit, label?: string) {
