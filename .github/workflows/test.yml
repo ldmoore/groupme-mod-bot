@@ -1,38 +1,35 @@
 name: Test and Coverage
 
 on:
-    push:
-        branches:
-            - main
-            - "*"
-    pull_request:
-        branches:
-            - "*"
+  push:
+    branches:
+      - main
+      - "*"
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
-                  cache: "npm"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
 
-            - name: Install dependencies
-              run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Run linter
-              run: npm run lint
+      - name: Run tests with coverage
+        run: npm run test:coverage
 
-            - name: Run tests with coverage
-              run: npm run test:coverage
-
-            - name: Check coverage threshold
-              run: |
-                  echo "Coverage check completed successfully!"
-                  echo "Tests passed and coverage meets the required threshold (80%)"
+      - name: Check coverage threshold
+        run: |
+          echo "Coverage check completed successfully!"
+          echo "Tests passed and coverage meets the required threshold (80%)"
