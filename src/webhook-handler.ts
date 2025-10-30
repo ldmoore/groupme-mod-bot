@@ -2,13 +2,19 @@ import type { Context } from "hono";
 import containsBlockedPhrase from "./blocked-phrases";
 import containsBlockSequence from "./blocked-sequences";
 import containsBlockedWord from "./blocked-words";
+import { IllegalContentType, IllegalMessageResult } from "./types";
 
-export function isIllegalMessage(message: string): boolean {
-	return (
-		containsBlockedWord(message) ||
-		containsBlockSequence(message) ||
-		containsBlockedPhrase(message)
-	);
+export function isIllegalMessage(message: string): IllegalMessageResult {
+	if (containsBlockedWord(message)) {
+		return new IllegalMessageResult(true, IllegalContentType.Word);
+	}
+	if (containsBlockSequence(message)) {
+		return new IllegalMessageResult(true, IllegalContentType.Sequence);
+	}
+	if (containsBlockedPhrase(message)) {
+		return new IllegalMessageResult(true, IllegalContentType.Phrase);
+	}
+	return new IllegalMessageResult(false, IllegalContentType.None);
 }
 
 async function safeFetch(url: string, options?: RequestInit, label?: string) {
@@ -47,7 +53,7 @@ export async function groupMeWebhookHandler(c: Context) {
 
 	const staging = !!c.env.STAGING;
 
-	if (isIllegalMessage(text)) {
+	if (isIllegalMessage(text).valueOf()) {
 		console.log("Banned content detected:", text);
 
 		const token = c.env.GROUPME_ACCESS_TOKEN;
