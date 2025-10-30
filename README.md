@@ -42,6 +42,10 @@ The `main` branch is the live, automatically deployed version of Bots Begone.
 
 The `staging` branch is automatically deployed on the [testing GroupMe](https://groupme.com/join_group/109616610/4Lu7g3V8). Messages flagged in the testing group will not result in removal, but rather a **BOTS BEGONE 🤬** message indicating that it was caught by the filter.
 
-**Contributing**
+## Contributing
 
 Review the docs on [contributing](/CONTRIBUTING.md).
+
+## Testing
+
+Review the docs on [testing](/test/TESTING.md).
