@@ -48,4 +48,8 @@ describe(containsBlockedPhrase, () => {
 	test("empty message", () => {
 		expect(containsBlockedPhrase("")).toBe(false);
 	});
+
+	test("non space separated blocked phrase", () => {
+		expect(containsBlockedPhrase("100%free cash giveaway")).toBe(true);
+	});
 });
