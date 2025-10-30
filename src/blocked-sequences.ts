@@ -87,13 +87,12 @@ const blockedSequences: string[] = [
  * @returns - True if the message contains a blocked sequence, false otherwise.
  */
 export default function containsBlockedSequence(message: string): boolean {
-	const lowerMessage: string = message.toLowerCase();
 	for (const sequence of blockedSequences) {
 		const parts: string[] = sequence.toLowerCase().split(/\s+/);
 		let currentIndex: number = 0;
 		let found: boolean = true;
 		for (const part of parts) {
-			currentIndex = lowerMessage.indexOf(part, currentIndex);
+			currentIndex = message.indexOf(part, currentIndex);
 			if (currentIndex === -1) {
 				found = false;
 				break;

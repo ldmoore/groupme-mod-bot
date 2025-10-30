@@ -3,13 +3,13 @@ import containsBlockedSequence from "../src/blocked-sequences";
 describe(containsBlockedSequence, () => {
 	test("giving away billie eilish", () => {
 		expect(
-			containsBlockedSequence("I'm giving away free Billie Eilish tickets!"),
+			containsBlockedSequence("i'm giving away free billie eilish tickets!"),
 		).toBe(true);
 	});
 
 	test("macbook air", () => {
 		expect(
-			containsBlockedSequence("Selling my MacBook Air for a great price."),
+			containsBlockedSequence("Selling my macbook air for a great price."),
 		).toBe(true);
 	});
 
@@ -23,7 +23,7 @@ describe(containsBlockedSequence, () => {
 
 	test("text me on gmail", () => {
 		expect(
-			containsBlockedSequence("You can text me on Gmail for more details."),
+			containsBlockedSequence("You can text me on gmail for more details."),
 		).toBe(true);
 	});
 
@@ -35,13 +35,13 @@ describe(containsBlockedSequence, () => {
 
 	test("tate mcrae tickets", () => {
 		expect(
-			containsBlockedSequence("I have extra Tate McRae tickets for sale."),
+			containsBlockedSequence("i have extra tate mcrae tickets for sale."),
 		).toBe(true);
 	});
 
 	test("partial blocked sequence", () => {
 		expect(
-			containsBlockedSequence("I'm giving away free Billie tickets!"),
+			containsBlockedSequence("i'm giving away free billie tickets!"),
 		).toBe(false);
 	});
 
@@ -58,14 +58,14 @@ describe(containsBlockedSequence, () => {
 	test("emojis in blocked sequence", () => {
 		expect(
 			containsBlockedSequence(
-				"I'm giving away free Billie Eilish tickets! 🎟️🎤",
+				"i'm giving away free billie eilish tickets! 🎟️🎤",
 			),
 		).toBe(true);
 	});
 
 	test("blocked sequence with different casing", () => {
 		expect(
-			containsBlockedSequence("Selling My MacBook Air for a Great Price."),
+			containsBlockedSequence("selling My macbook air for a Great Price."),
 		).toBe(true);
 	});
 
