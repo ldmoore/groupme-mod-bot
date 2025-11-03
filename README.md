@@ -1,26 +1,27 @@
 # GroupMe Ad Auto-Removal
+
 GroupMe bot for instantly removing spam, scam, and advertisement messages... **BOTS BEGONE 🤬**!
 
 Additions to the filter are welcome, open a PR with changes to one or more of the following lists:
 
 **Blocked Words:**
 
-- Exact words that would constitute a removal. 
-    - Ex. "giveaway", "promo", "tate mcrae"
-    - "tate mcrae" is considered one word because "tate" will always appear next to "mcrae"
+- Exact words that would constitute a removal.
+  - Ex. "giveaway", "promo", "tate mcrae"
+  - "tate mcrae" is considered one word because "tate" will always appear next to "mcrae"
 - Edit `src/blocked-words.ts`
 
 **Blocked Phrases**
 
-- Exact phrases that would constitute a removal. 
-    - Ex. "click the link below", "free cash giveaway"
+- Exact phrases that would constitute a removal.
+  - Ex. "click the link below", "free cash giveaway"
 - Edit `src/blocked-phrases.ts`
 
 **Blocked Sequences**
 
-- Groupings of words that when appearing in the given order constitutes a removal. Only cares about the order in which the words appear, not what might be between them. 
-    - Ex. "tyler the creator tickets", "free macbook air", "selling lease"
-    - This would catch the messages: "Hi! I'm selling my lease." and "Hi! My roommate is selling her lease."
+- Groupings of words that when appearing in the given order constitutes a removal. Only cares about the order in which the words appear, not what might be between them.
+  - Ex. "tyler the creator tickets", "free macbook air", "selling lease"
+  - This would catch the messages: "Hi! I'm selling my lease." and "Hi! My roommate is selling her lease."
 - Edit `src/blocked-sequences.ts`
 
 ## Cloudflare Workers Setup
@@ -38,14 +39,19 @@ Additions to the filter are welcome, open a PR with changes to one or more of th
 - Set `GROUPME_BOT_ID` to your GroupMe bot ID
 
 ## Staging
+
 The `main` branch is the live, automatically deployed version of Bots Begone.
 
 The `staging` branch is automatically deployed on the [testing GroupMe](https://groupme.com/join_group/109616610/4Lu7g3V8). Messages flagged in the testing group will not result in removal, but rather a **BOTS BEGONE 🤬** message indicating that it was caught by the filter.
+
+## Testing
+
+Review the docs on [testing](/test/TESTING.md).
 
 ## Contributing
 
 Review the docs on [contributing](/CONTRIBUTING.md).
 
-## Testing
+## Star History
 
-Review the docs on [testing](/test/TESTING.md).
+[![Star History Chart](https://api.star-history.com/svg?repos=ldmoore/groupme-mod-bot&type=date&legend=top-left)](https://www.star-history.com/#ldmoore/groupme-mod-bot&type=date&legend=top-left)
