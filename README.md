@@ -55,3 +55,6 @@ Review the docs on [contributing](/CONTRIBUTING.md).
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ldmoore/groupme-mod-bot&type=date&legend=top-left)](https://www.star-history.com/#ldmoore/groupme-mod-bot&type=date&legend=top-left)
+
+## Support Bots Begone
+[![Support me on Ko-fi](https://img.shields.io/badge/Ko--fi-Donate%20a%20Coffee-orange?logo=ko-fi&logoColor=white)](https://ko-fi.com/ldmoore)
