@@ -7,6 +7,7 @@ export const blockedPhrases: string[] = [
 	"verify your account",
 	"free cash giveaway",
 	"you have been selected",
+	"remote position",
 ];
 
 /**
