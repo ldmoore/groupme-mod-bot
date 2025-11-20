@@ -11,7 +11,12 @@ export function isIllegalMessage(message: string): boolean {
 	);
 }
 
-async function safeFetch(url: string, options?: RequestInit, label?: string) {
+async function safeFetch(
+	url: string,
+	options?: RequestInit,
+	label?: string,
+	error_bot_id?: string,
+) {
 	try {
 		console.log(
 			`[HTTP] Request${label ? ` - ${label}` : ""}:`,
@@ -25,11 +30,31 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 			res.status,
 			text,
 		);
+		if (res.status === 401)
+			notifyError(
+				"[ALERT] Unauthorized error! Check access token validity",
+				error_bot_id,
+			);
 		return { res, text };
 	} catch (err) {
 		console.error(`[HTTP] Error${label ? ` - ${label}` : ""}:`, err);
 		throw err;
 	}
+}
+
+async function notifyError(text: string, bot_id: string) {
+	if (!bot_id)
+		return console.log(
+			"No bot_id provided for error notification. Set GROUPME_ERROR_BOT_ID in env.",
+		);
+	await safeFetch(
+		`https://api.groupme.com/v3/bots/post`,
+		{
+			method: "POST",
+			body: JSON.stringify({ bot_id, text }),
+		},
+		"Post Staging Error Message",
+	);
 }
 
 export async function groupMeWebhookHandler(c: Context) {
@@ -46,6 +71,7 @@ export async function groupMeWebhookHandler(c: Context) {
 	);
 
 	const staging = !!c.env.STAGING;
+	const error_bot_id = c.env.GROUPME_ERROR_BOT_ID || "";
 
 	if (isIllegalMessage(text).valueOf()) {
 		console.log("Banned content detected:", text);
@@ -62,6 +88,7 @@ export async function groupMeWebhookHandler(c: Context) {
 					body: JSON.stringify({ bot_id, text: "BOTS BEGONE 🤬" }),
 				},
 				"Post Bot Message",
+				error_bot_id,
 			);
 			return;
 		}
@@ -71,6 +98,7 @@ export async function groupMeWebhookHandler(c: Context) {
 			`https://api.groupme.com/v3/groups/${group_id}?token=${token}`,
 			undefined,
 			"Get Group Data",
+			error_bot_id,
 		);
 		const groupData = JSON.parse(groupRaw);
 		type GroupMember = { user_id: string; id: string };
@@ -90,18 +118,21 @@ export async function groupMeWebhookHandler(c: Context) {
 			`https://api.groupme.com/v3/conversations/${group_id}/messages/${message_id}?token=${token}`,
 			{ method: "DELETE" },
 			"Delete Message",
+			error_bot_id,
 		);
 
 		await safeFetch(
 			`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
 			{ method: "POST" },
 			"Remove User",
+			error_bot_id,
 		);
 
 		await safeFetch(
 			`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
 			{ method: "POST" },
 			"Remove User",
+			error_bot_id,
 		);
 
 		if (Math.floor(Math.random() * 1000000) === 462926) {
@@ -112,6 +143,7 @@ export async function groupMeWebhookHandler(c: Context) {
 					body: JSON.stringify({ bot_id, text: "BOTS BEGONE 🤬" }),
 				},
 				"Post Bot Message",
+				error_bot_id,
 			);
 		}
 	} else {
