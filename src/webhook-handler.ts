@@ -30,7 +30,7 @@ async function safeFetch(
 			res.status,
 			text,
 		);
-		if (res.status === 401)
+		if (error_bot_id && res.status === 401)
 			notifyError(
 				"[ALERT] Unauthorized error! Check access token validity",
 				error_bot_id,
@@ -43,18 +43,18 @@ async function safeFetch(
 }
 
 async function notifyError(text: string, bot_id: string) {
-	if (!bot_id)
-		return console.log(
-			"No bot_id provided for error notification. Set GROUPME_ERROR_BOT_ID in env.",
+	try {
+		await safeFetch(
+			`https://api.groupme.com/v3/bots/post`,
+			{
+				method: "POST",
+				body: JSON.stringify({ bot_id, text }),
+			},
+			"Post Staging Error Message",
 		);
-	await safeFetch(
-		`https://api.groupme.com/v3/bots/post`,
-		{
-			method: "POST",
-			body: JSON.stringify({ bot_id, text }),
-		},
-		"Post Staging Error Message",
-	);
+	} catch (err) {
+		console.error("Failed to send error notification:", err);
+	}
 }
 
 export async function groupMeWebhookHandler(c: Context) {
