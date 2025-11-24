@@ -12,6 +12,7 @@ const blockedWords: string[] = [
 	"tate mcrae",
 	"olivia rodrigo",
 	"ariana grande",
+	"megan moroney",
 ];
 
 function escapeRegExp(s: string): string {
