@@ -39,10 +39,14 @@ describe(containsBlockedSequence, () => {
 		).toBe(true);
 	});
 
-	test("partial blocked sequence", () => {
+	test("free ticket offer sequence", () => {
 		expect(
 			containsBlockedSequence("i'm giving away free billie tickets!"),
-		).toBe(false);
+		).toBe(true);
+	});
+
+	test("patrial blocked sequence", () => {
+		expect(containsBlockedSequence("i have tate tickets for sale")).toBe(false);
 	});
 
 	test("clean message", () => {
