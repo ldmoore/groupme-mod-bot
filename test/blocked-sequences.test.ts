@@ -45,7 +45,7 @@ describe(containsBlockedSequence, () => {
 		).toBe(true);
 	});
 
-	test("patrial blocked sequence", () => {
+	test("partial blocked sequence", () => {
 		expect(containsBlockedSequence("i have tate tickets for sale")).toBe(false);
 	});
 
