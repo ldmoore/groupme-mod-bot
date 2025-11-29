@@ -81,6 +81,8 @@ const blockedSequences: string[] = [
 	"for sale $",
 	"$ remote",
 	"remote $",
+	"free ticket",
+	"ticket free",
 ];
 
 /**
