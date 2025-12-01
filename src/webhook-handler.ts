@@ -13,18 +13,8 @@ export function isIllegalMessage(message: string): boolean {
 
 async function safeFetch(url: string, options?: RequestInit, label?: string) {
 	try {
-		console.log(
-			`[HTTP] Request${label ? ` - ${label}` : ""}:`,
-			url,
-			options || {},
-		);
 		const res = await fetch(url, options);
 		const text = await res.text();
-		console.log(
-			`[HTTP] Response${label ? ` - ${label}` : ""}:`,
-			res.status,
-			text,
-		);
 		return { res, text };
 	} catch (err) {
 		console.error(`[HTTP] Error${label ? ` - ${label}` : ""}:`, err);
@@ -34,7 +24,6 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 
 export async function groupMeWebhookHandler(c: Context) {
 	const body = await c.req.json();
-	console.log("Incoming webhook:", JSON.stringify(body));
 
 	const text = (body.text || "").toLowerCase();
 	const group_id = body.group_id;
@@ -66,13 +55,13 @@ export async function groupMeWebhookHandler(c: Context) {
 			return;
 		}
 
-		console.log("Fetching group data to resolve membership_id...");
 		const { text: groupRaw } = await safeFetch(
 			`https://api.groupme.com/v3/groups/${group_id}?token=${token}`,
 			undefined,
 			"Get Group Data",
 		);
 		const groupData = JSON.parse(groupRaw);
+
 		type GroupMember = { user_id: string; id: string };
 		const member = groupData.response.members.find(
 			(m: GroupMember) => m.user_id === sender_user_id,
@@ -82,9 +71,6 @@ export async function groupMeWebhookHandler(c: Context) {
 			return c.json({ status: "user not found" }, 200);
 		}
 		const membership_id = member.id;
-		console.log(
-			`Resolved membership_id for user ${sender_user_id}: ${membership_id}`,
-		);
 
 		await safeFetch(
 			`https://api.groupme.com/v3/conversations/${group_id}/messages/${message_id}?token=${token}`,
