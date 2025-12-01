@@ -83,6 +83,10 @@ const blockedSequences: string[] = [
 	"remote $",
 	"free ticket",
 	"ticket free",
+	"help with essay",
+	"help with classes",
+	"help with assignments",
+	"WhatsApp iMessage",
 ];
 
 /**
