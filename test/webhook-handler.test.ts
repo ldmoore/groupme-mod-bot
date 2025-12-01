@@ -509,9 +509,54 @@ describe("groupMeWebhookHandler", () => {
 		});
 	});
 
-	describe("safeFetch logging coverage", () => {
-		test("should log with label parameter", async () => {
+	describe("safeFetch error handling", () => {
+		test("should send alert when safeFetch fails", async () => {
+			mockConsoleWarn.mockClear();
 			mockConsoleLog.mockClear();
+
+			if (mockContext.env) {
+				mockContext.env.GROUPME_BOT_ID_ERROR_ALERTS = "error_bot_id";
+			}
+
+			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
+				text: "Click the link below",
+				group_id: "12345",
+				id: "msg_001",
+				sender_id: "user_001",
+			});
+
+			mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				text: async () => JSON.stringify({ success: true }),
+			} as Response);
+
+			await expect(
+				groupMeWebhookHandler(mockContext as Context),
+			).rejects.toThrow("Network error");
+
+			expect(mockConsoleWarn).toHaveBeenCalledWith(
+				expect.stringMatching(/General error handling blocked content/),
+				expect.anything(),
+			);
+
+			expect(mockFetch).toHaveBeenCalled();
+			expect(mockFetch).toHaveBeenNthCalledWith(
+				2,
+				"https://api.groupme.com/v3/bots/post",
+				expect.objectContaining({
+					method: "POST",
+					body: expect.stringContaining('"bot_id":"error_bot_id"'),
+				}),
+			);
+		});
+
+		test("should send alert on 401 unauthorized", async () => {
+			if (mockContext.env) {
+				mockContext.env.GROUPME_BOT_ID_ERROR_ALERTS = "error_bot_id";
+			}
 
 			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
 				text: "Click the link below",
@@ -521,82 +566,59 @@ describe("groupMeWebhookHandler", () => {
 			});
 
 			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				status: 200,
+				ok: false,
+				status: 401,
 				text: async () =>
 					JSON.stringify({
 						response: {
-							members: [{ user_id: "user_001", id: "membership_001" }],
+							meta: { code: 401, errors: ["unauthorized"] },
 						},
 					}),
 			} as Response);
 
-			mockFetch.mockResolvedValue({
+			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
-			await groupMeWebhookHandler(mockContext as Context);
+			await expect(
+				groupMeWebhookHandler(mockContext as Context),
+			).rejects.toThrow();
 
-			expect(mockConsoleLog).toHaveBeenCalledWith(
-				expect.stringMatching(/\[HTTP\] Request - /),
-				expect.any(String),
-				expect.anything(),
-			);
-
-			expect(mockConsoleLog).toHaveBeenCalledWith(
-				expect.stringMatching(/\[HTTP\] Response - /),
-				expect.any(Number),
-				expect.any(String),
+			expect(mockFetch).toHaveBeenCalled();
+			expect(mockFetch).toHaveBeenNthCalledWith(
+				2,
+				"https://api.groupme.com/v3/bots/post",
+				expect.objectContaining({
+					method: "POST",
+					body: expect.stringContaining('"bot_id":"error_bot_id"'),
+				}),
 			);
 		});
 
-		test("should log without label parameter", async () => {
-			mockConsoleLog.mockClear();
-
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				status: 200,
-				text: async () =>
-					JSON.stringify({
-						response: {
-							members: [{ user_id: "user_001", id: "member_001" }],
-						},
-					}),
-			} as Response);
-
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				status: 200,
-				text: async () => JSON.stringify({ success: true }),
-			} as Response);
-
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				status: 200,
-				text: async () => JSON.stringify({ success: true }),
-			} as Response);
-
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				status: 200,
-				text: async () => JSON.stringify({ success: true }),
-			} as Response);
+		test("should not notify when error alert env var is not set", async () => {
+			if (mockContext.env) {
+				delete (mockContext.env as any).GROUPME_BOT_ID_ERROR_ALERTS;
+			}
 
 			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "crypto",
+				text: "Click the link below",
 				group_id: "12345",
 				id: "msg_001",
 				sender_id: "user_001",
 			});
 
-			await groupMeWebhookHandler(mockContext as Context);
+			mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-			expect(mockConsoleLog).toHaveBeenCalledWith(
-				expect.stringMatching(/\[HTTP\] Response - /),
-				expect.any(Number),
-				expect.any(String),
+			await expect(
+				groupMeWebhookHandler(mockContext as Context),
+			).rejects.toThrow("Network error");
+
+			expect(mockFetch).toHaveBeenCalledTimes(1);
+			expect(mockFetch).not.toHaveBeenCalledWith(
+				"https://api.groupme.com/v3/bots/post",
+				expect.anything(),
 			);
 		});
 	});
