@@ -116,7 +116,7 @@ export async function groupMeWebhookHandler(c: Context) {
 					"Post Bot Message",
 				);
 			}
-			
+
 			throw err;
 		}
 	} else {

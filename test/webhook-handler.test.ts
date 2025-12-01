@@ -599,7 +599,7 @@ describe("groupMeWebhookHandler", () => {
 
 		test("should not notify when error alert env var is not set", async () => {
 			if (mockContext.env) {
-				delete (mockContext.env as any).GROUPME_BOT_ID_ERROR_ALERTS;
+				delete mockContext.env.GROUPME_BOT_ID_ERROR_ALERTS;
 			}
 
 			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
