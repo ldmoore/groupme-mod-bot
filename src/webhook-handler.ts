@@ -15,6 +15,7 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 	try {
 		const res = await fetch(url, options);
 		const text = await res.text();
+		if (!res.ok) throw new Error(`HTTP ${res.status} - ${text}`);
 		return { res, text };
 	} catch (err) {
 		console.error(`[HTTP] Error${label ? ` - ${label}` : ""}:`, err);
