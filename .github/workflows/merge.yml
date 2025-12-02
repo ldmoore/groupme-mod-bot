@@ -1,4 +1,4 @@
-name: Fast-Forward Merge
+name: Fast-Forward Merge and Deploy
 
 on:
   pull_request:
@@ -45,8 +45,6 @@ jobs:
       - name: Attempt fast-forward merge
         if: success()
         id: ffmerge
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
@@ -54,11 +52,21 @@ jobs:
           set -e
           git checkout "$BASE_BRANCH"
           if git merge --ff-only "origin/$HEAD_BRANCH"; then
-            git push "https://${GH_PAT}@github.com/${{ github.repository }}.git" "$BASE_BRANCH"
+            git push origin "$BASE_BRANCH"
             echo "merged=true" >> $GITHUB_OUTPUT
           else
             echo "merged=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Deploy to Cloudflare Workers
+        if: steps.ffmerge.outputs.merged == 'true' && github.event.pull_request.base.ref == 'main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          wranglerVersion: "4"
+          command: deploy
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Comment on PR
         if: always()
