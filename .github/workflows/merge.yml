@@ -45,6 +45,8 @@ jobs:
       - name: Attempt fast-forward merge
         if: success()
         id: ffmerge
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
@@ -52,7 +54,7 @@ jobs:
           set -e
           git checkout "$BASE_BRANCH"
           if git merge --ff-only "origin/$HEAD_BRANCH"; then
-            git push origin "$BASE_BRANCH"
+            git push "https://${GH_PAT}@github.com/${{ github.repository }}.git" "$BASE_BRANCH"
             echo "merged=true" >> $GITHUB_OUTPUT
           else
             echo "merged=false" >> $GITHUB_OUTPUT
