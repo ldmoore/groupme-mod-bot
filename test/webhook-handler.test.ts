@@ -258,7 +258,7 @@ describe("groupMeWebhookHandler", () => {
 
 			await groupMeWebhookHandler(mockContext as Context);
 
-			expect(mockFetch).toHaveBeenCalledTimes(4);
+			expect(mockFetch).toHaveBeenCalledTimes(3);
 
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				1,
@@ -274,12 +274,6 @@ describe("groupMeWebhookHandler", () => {
 
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				3,
-				"https://api.groupme.com/v3/groups/12345/members/membership_001/remove?token=test_token",
-				{ method: "POST" },
-			);
-
-			expect(mockFetch).toHaveBeenNthCalledWith(
-				4,
 				"https://api.groupme.com/v3/groups/12345/members/membership_001/remove?token=test_token",
 				{ method: "POST" },
 			);
@@ -381,7 +375,7 @@ describe("groupMeWebhookHandler", () => {
 
 			await groupMeWebhookHandler(mockContext as Context);
 
-			expect(mockFetch).toHaveBeenCalledTimes(4);
+			expect(mockFetch).toHaveBeenCalledTimes(3);
 			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
 		});
 
@@ -412,7 +406,7 @@ describe("groupMeWebhookHandler", () => {
 
 			await groupMeWebhookHandler(mockContext as Context);
 
-			expect(mockFetch).toHaveBeenCalledTimes(4);
+			expect(mockFetch).toHaveBeenCalledTimes(3);
 			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
 		});
 	});
@@ -491,10 +485,10 @@ describe("groupMeWebhookHandler", () => {
 
 			await groupMeWebhookHandler(mockContext as Context);
 
-			expect(mockFetch).toHaveBeenCalledTimes(5);
+			expect(mockFetch).toHaveBeenCalledTimes(4);
 
 			expect(mockFetch).toHaveBeenNthCalledWith(
-				5,
+				4,
 				"https://api.groupme.com/v3/bots/post",
 				expect.objectContaining({
 					method: "POST",

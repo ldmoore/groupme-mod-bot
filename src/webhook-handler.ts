@@ -23,6 +23,50 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 	}
 }
 
+async function postMessage(bot_id: string, text: string) {
+	await safeFetch(
+		`https://api.groupme.com/v3/bots/post`,
+		{
+			method: "POST",
+			body: JSON.stringify({ bot_id, text }),
+		},
+		"Post Bot Message",
+	);
+}
+
+async function getGroupData(token: string, group_id: string) {
+	const { text: groupRaw } = await safeFetch(
+		`https://api.groupme.com/v3/groups/${group_id}?token=${token}`,
+		undefined,
+		"Get Group Data",
+	);
+	return JSON.parse(groupRaw);
+}
+
+async function deleteMessage(
+	token: string,
+	group_id: string,
+	message_id: string,
+) {
+	await safeFetch(
+		`https://api.groupme.com/v3/conversations/${group_id}/messages/${message_id}?token=${token}`,
+		{ method: "DELETE" },
+		"Delete Message",
+	);
+}
+
+async function removeUser(
+	token: string,
+	group_id: string,
+	membership_id: string,
+) {
+	await safeFetch(
+		`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
+		{ method: "POST" },
+		"Remove User",
+	);
+}
+
 export async function groupMeWebhookHandler(c: Context) {
 	const body = await c.req.json();
 
@@ -45,24 +89,12 @@ export async function groupMeWebhookHandler(c: Context) {
 
 		// Staging instance will not remove users, only flag the message
 		if (staging) {
-			await safeFetch(
-				`https://api.groupme.com/v3/bots/post`,
-				{
-					method: "POST",
-					body: JSON.stringify({ bot_id, text: "BOTS BEGONE 🤬" }),
-				},
-				"Post Bot Message",
-			);
+			await postMessage(bot_id, "BOTS BEGONE 🤬");
 			return;
 		}
 
 		try {
-			const { text: groupRaw } = await safeFetch(
-				`https://api.groupme.com/v3/groups/${group_id}?token=${token}`,
-				undefined,
-				"Get Group Data",
-			);
-			const groupData = JSON.parse(groupRaw);
+			const groupData = await getGroupData(token, group_id);
 
 			type GroupMember = { user_id: string; id: string };
 			const member = groupData.response.members.find(
@@ -74,50 +106,20 @@ export async function groupMeWebhookHandler(c: Context) {
 			}
 			const membership_id = member.id;
 
-			await safeFetch(
-				`https://api.groupme.com/v3/conversations/${group_id}/messages/${message_id}?token=${token}`,
-				{ method: "DELETE" },
-				"Delete Message",
-			);
-
-			await safeFetch(
-				`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
-				{ method: "POST" },
-				"Remove User",
-			);
-
-			await safeFetch(
-				`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
-				{ method: "POST" },
-				"Remove User",
-			);
+			await deleteMessage(token, group_id, message_id);
+			await removeUser(token, group_id, membership_id);
 
 			if (Math.floor(Math.random() * 1000000) === 462926) {
-				await safeFetch(
-					`https://api.groupme.com/v3/bots/post`,
-					{
-						method: "POST",
-						body: JSON.stringify({ bot_id, text: "BOTS BEGONE 🤬" }),
-					},
-					"Post Bot Message",
-				);
+				await postMessage(bot_id, "BOTS BEGONE 🤬");
 			}
 		} catch (err) {
 			console.warn("General error handling blocked content", err);
 			if (c.env.GROUPME_BOT_ID_ERROR_ALERTS) {
-				await safeFetch(
-					`https://api.groupme.com/v3/bots/post`,
-					{
-						method: "POST",
-						body: JSON.stringify({
-							bot_id: c.env.GROUPME_BOT_ID_ERROR_ALERTS,
-							text: "⚠️ Error occurred in production! Check access token validity in CF environment variables.",
-						}),
-					},
-					"Post Bot Message",
+				await postMessage(
+					c.env.GROUPME_BOT_ID_ERROR_ALERTS,
+					"⚠️ Error occurred in production! Check access token validity in CF environment variables.",
 				);
 			}
-
 			throw err;
 		}
 	} else {
