@@ -13,18 +13,9 @@ export function isIllegalMessage(message: string): boolean {
 
 async function safeFetch(url: string, options?: RequestInit, label?: string) {
 	try {
-		console.log(
-			`[HTTP] Request${label ? ` - ${label}` : ""}:`,
-			url,
-			options || {},
-		);
 		const res = await fetch(url, options);
 		const text = await res.text();
-		console.log(
-			`[HTTP] Response${label ? ` - ${label}` : ""}:`,
-			res.status,
-			text,
-		);
+		if (!res.ok) throw new Error(`HTTP ${res.status} - ${text}`);
 		return { res, text };
 	} catch (err) {
 		console.error(`[HTTP] Error${label ? ` - ${label}` : ""}:`, err);
@@ -32,9 +23,52 @@ async function safeFetch(url: string, options?: RequestInit, label?: string) {
 	}
 }
 
+async function postMessage(bot_id: string, text: string) {
+	await safeFetch(
+		`https://api.groupme.com/v3/bots/post`,
+		{
+			method: "POST",
+			body: JSON.stringify({ bot_id, text }),
+		},
+		"Post Bot Message",
+	);
+}
+
+async function getGroupData(token: string, group_id: string) {
+	const { text: groupRaw } = await safeFetch(
+		`https://api.groupme.com/v3/groups/${group_id}?token=${token}`,
+		undefined,
+		"Get Group Data",
+	);
+	return JSON.parse(groupRaw);
+}
+
+async function deleteMessage(
+	token: string,
+	group_id: string,
+	message_id: string,
+) {
+	await safeFetch(
+		`https://api.groupme.com/v3/conversations/${group_id}/messages/${message_id}?token=${token}`,
+		{ method: "DELETE" },
+		"Delete Message",
+	);
+}
+
+async function removeUser(
+	token: string,
+	group_id: string,
+	membership_id: string,
+) {
+	await safeFetch(
+		`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
+		{ method: "POST" },
+		"Remove User",
+	);
+}
+
 export async function groupMeWebhookHandler(c: Context) {
 	const body = await c.req.json();
-	console.log("Incoming webhook:", JSON.stringify(body));
 
 	const text = (body.text || "").toLowerCase();
 	const group_id = body.group_id;
@@ -55,64 +89,38 @@ export async function groupMeWebhookHandler(c: Context) {
 
 		// Staging instance will not remove users, only flag the message
 		if (staging) {
-			await safeFetch(
-				`https://api.groupme.com/v3/bots/post`,
-				{
-					method: "POST",
-					body: JSON.stringify({ bot_id, text: "BOTS BEGONE 🤬" }),
-				},
-				"Post Bot Message",
-			);
+			await postMessage(bot_id, "BOTS BEGONE 🤬");
 			return;
 		}
 
-		console.log("Fetching group data to resolve membership_id...");
-		const { text: groupRaw } = await safeFetch(
-			`https://api.groupme.com/v3/groups/${group_id}?token=${token}`,
-			undefined,
-			"Get Group Data",
-		);
-		const groupData = JSON.parse(groupRaw);
-		type GroupMember = { user_id: string; id: string };
-		const member = groupData.response.members.find(
-			(m: GroupMember) => m.user_id === sender_user_id,
-		);
-		if (!member) {
-			console.warn(`User ${sender_user_id} not found in group ${group_id}`);
-			return c.json({ status: "user not found" }, 200);
-		}
-		const membership_id = member.id;
-		console.log(
-			`Resolved membership_id for user ${sender_user_id}: ${membership_id}`,
-		);
+		try {
+			const groupData = await getGroupData(token, group_id);
 
-		await safeFetch(
-			`https://api.groupme.com/v3/conversations/${group_id}/messages/${message_id}?token=${token}`,
-			{ method: "DELETE" },
-			"Delete Message",
-		);
-
-		await safeFetch(
-			`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
-			{ method: "POST" },
-			"Remove User",
-		);
-
-		await safeFetch(
-			`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
-			{ method: "POST" },
-			"Remove User",
-		);
-
-		if (Math.floor(Math.random() * 1000000) === 462926) {
-			await safeFetch(
-				`https://api.groupme.com/v3/bots/post`,
-				{
-					method: "POST",
-					body: JSON.stringify({ bot_id, text: "BOTS BEGONE 🤬" }),
-				},
-				"Post Bot Message",
+			type GroupMember = { user_id: string; id: string };
+			const member = groupData.response.members.find(
+				(m: GroupMember) => m.user_id === sender_user_id,
 			);
+			if (!member) {
+				console.warn(`User ${sender_user_id} not found in group ${group_id}`);
+				return c.json({ status: "user not found" }, 200);
+			}
+			const membership_id = member.id;
+
+			await deleteMessage(token, group_id, message_id);
+			await removeUser(token, group_id, membership_id);
+
+			if (Math.floor(Math.random() * 1000000) === 462926) {
+				await postMessage(bot_id, "BOTS BEGONE 🤬");
+			}
+		} catch (err) {
+			console.warn("General error handling blocked content", err);
+			if (c.env.GROUPME_BOT_ID_ERROR_ALERTS) {
+				await postMessage(
+					c.env.GROUPME_BOT_ID_ERROR_ALERTS,
+					"⚠️ Error occurred in production! Check access token validity in CF environment variables.",
+				);
+			}
+			throw err;
 		}
 	} else {
 		console.log("Message passed moderation check.");
