@@ -87,6 +87,7 @@ const blockedSequences: string[] = [
 	"help with classes",
 	"help with assignments",
 	"WhatsApp iMessage",
+	"resell ticket",
 	"permit sell",
 	"sell permit",
 ];
