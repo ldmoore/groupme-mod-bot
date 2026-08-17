@@ -504,8 +504,8 @@ describe("groupMeWebhookHandler", () => {
 	});
 
 	describe("safeFetch error handling", () => {
-		test("should send alert when safeFetch fails", async () => {
-			mockConsoleWarn.mockClear();
+		test("should send error alert when safeFetch fails and error alert bot ID is specified", async () => {
+			mockConsoleError.mockClear();
 			mockConsoleLog.mockClear();
 
 			if (mockContext.env) {
@@ -526,23 +526,31 @@ describe("groupMeWebhookHandler", () => {
 				status: 200,
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				text: async () => JSON.stringify({ success: true }),
+			} as Response);
 
 			await expect(
 				groupMeWebhookHandler(mockContext as Context),
 			).rejects.toThrow("Network error");
 
-			expect(mockConsoleWarn).toHaveBeenCalledWith(
-				expect.stringMatching(/General error handling blocked content/),
-				expect.anything(),
+			expect(mockConsoleError).toHaveBeenCalledWith(
+				"[HTTP] Error - Get Group Data:",
+				expect.any(Error),
 			);
 
-			expect(mockFetch).toHaveBeenCalled();
+			expect(mockFetch).toHaveBeenCalledTimes(3);
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				2,
 				"https://api.groupme.com/v3/bots/post",
 				expect.objectContaining({
 					method: "POST",
-					body: expect.stringContaining('"bot_id":"error_bot_id"'),
+					body: JSON.stringify({
+						bot_id: "error_bot_id",
+						text: "⚠️ Error occurred in production! Check access token validity in CF environment variables.",
+					}),
 				}),
 			);
 		});

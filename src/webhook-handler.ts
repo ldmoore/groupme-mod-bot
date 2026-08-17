@@ -11,19 +11,42 @@ export function isIllegalMessage(message: string): boolean {
 	);
 }
 
-async function safeFetch(url: string, options?: RequestInit, label?: string) {
+async function safeFetch(
+	url: string,
+	options?: RequestInit,
+	label?: string,
+	error_alerts_token?: string,
+) {
 	try {
 		const res = await fetch(url, options);
 		const text = await res.text();
-		if (!res.ok) throw new Error(`HTTP ${res.status} - ${text}`);
+		if (!res.ok) {
+			if (error_alerts_token) {
+				await postMessage(
+					error_alerts_token,
+					"⚠️ Error occurred in production! Check access token validity in CF environment variables.",
+				);
+			}
+			throw new Error(`HTTP ${res.status} - ${text}`);
+		}
 		return { res, text };
 	} catch (err) {
+		if (error_alerts_token) {
+			await postMessage(
+				error_alerts_token,
+				"⚠️ Error occurred in production! Check access token validity in CF environment variables.",
+			);
+		}
 		console.error(`[HTTP] Error${label ? ` - ${label}` : ""}:`, err);
 		throw err;
 	}
 }
 
-async function postMessage(bot_id: string, text: string) {
+async function postMessage(
+	bot_id: string,
+	text: string,
+	error_alerts_token?: string,
+) {
 	await safeFetch(
 		`https://api.groupme.com/v3/bots/post`,
 		{
@@ -31,14 +54,20 @@ async function postMessage(bot_id: string, text: string) {
 			body: JSON.stringify({ bot_id, text }),
 		},
 		"Post Bot Message",
+		error_alerts_token,
 	);
 }
 
-async function getGroupData(token: string, group_id: string) {
+async function getGroupData(
+	token: string,
+	group_id: string,
+	error_alerts_token?: string,
+) {
 	const { text: groupRaw } = await safeFetch(
 		`https://api.groupme.com/v3/groups/${group_id}?token=${token}`,
 		undefined,
 		"Get Group Data",
+		error_alerts_token,
 	);
 	return JSON.parse(groupRaw);
 }
@@ -47,11 +76,13 @@ async function deleteMessage(
 	token: string,
 	group_id: string,
 	message_id: string,
+	error_alerts_token?: string,
 ) {
 	await safeFetch(
 		`https://api.groupme.com/v3/conversations/${group_id}/messages/${message_id}?token=${token}`,
 		{ method: "DELETE" },
 		"Delete Message",
+		error_alerts_token,
 	);
 }
 
@@ -59,11 +90,13 @@ async function removeUser(
 	token: string,
 	group_id: string,
 	membership_id: string,
+	error_alerts_token?: string,
 ) {
 	await safeFetch(
 		`https://api.groupme.com/v3/groups/${group_id}/members/${membership_id}/remove?token=${token}`,
 		{ method: "POST" },
 		"Remove User",
+		error_alerts_token,
 	);
 }
 
@@ -86,15 +119,16 @@ export async function groupMeWebhookHandler(c: Context) {
 
 		const token = c.env.GROUPME_ACCESS_TOKEN;
 		const bot_id = c.env.GROUPME_BOT_ID;
+		const error_alerts_token = c.env.GROUPME_BOT_ID_ERROR_ALERTS;
 
 		// Staging instance will not remove users, only flag the message
 		if (staging) {
-			await postMessage(bot_id, "BOTS BEGONE 🤬");
+			await postMessage(bot_id, "BOTS BEGONE 🤬", error_alerts_token);
 			return;
 		}
 
 		try {
-			const groupData = await getGroupData(token, group_id);
+			const groupData = await getGroupData(token, group_id, error_alerts_token);
 
 			type GroupMember = { user_id: string; id: string };
 			const member = groupData.response.members.find(
@@ -106,17 +140,17 @@ export async function groupMeWebhookHandler(c: Context) {
 			}
 			const membership_id = member.id;
 
-			await deleteMessage(token, group_id, message_id);
-			await removeUser(token, group_id, membership_id);
+			await deleteMessage(token, group_id, message_id, error_alerts_token);
+			await removeUser(token, group_id, membership_id, error_alerts_token);
 
 			if (Math.floor(Math.random() * 1000000) === 462926) {
-				await postMessage(bot_id, "BOTS BEGONE 🤬");
+				await postMessage(bot_id, "BOTS BEGONE 🤬", error_alerts_token);
 			}
 		} catch (err) {
 			console.warn("General error handling blocked content", err);
-			if (c.env.GROUPME_BOT_ID_ERROR_ALERTS) {
+			if (error_alerts_token) {
 				await postMessage(
-					c.env.GROUPME_BOT_ID_ERROR_ALERTS,
+					error_alerts_token,
 					"⚠️ Error occurred in production! Check access token validity in CF environment variables.",
 				);
 			}
