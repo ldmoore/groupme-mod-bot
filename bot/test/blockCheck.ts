@@ -1,5 +1,5 @@
 import * as readline from "node:readline";
-import { isIllegalMessage } from "../src/webhook-handler";
+import { isIllegalMessage } from "../src/moderation/engine";
 
 const rl = readline.createInterface({
 	input: process.stdin,
