@@ -1,4 +1,4 @@
-import containsBlockedSequence from "../src/blocked-sequences";
+import containsBlockedSequence from "../src/moderation/blocked-sequences";
 
 describe(containsBlockedSequence, () => {
 	test("giving away billie eilish", () => {
