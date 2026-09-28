@@ -93,6 +93,7 @@ const blockedSequences: string[] = [
 	"sell parking",
 	"give parking",
 	"resell parking",
+	"parking pass"
 ];
 
 /**
