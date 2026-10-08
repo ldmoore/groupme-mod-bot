@@ -1,8 +1,9 @@
-import type { Context } from "hono";
-import {
-	groupMeWebhookHandler,
-	isIllegalMessage,
-} from "../src/webhook-handler";
+import type {
+	GroupMeBotEnv,
+	GroupMeWebhookPayload,
+} from "../src/groupme/webhook-handler";
+import { handleGroupMeWebhook } from "../src/groupme/webhook-handler";
+import { isIllegalMessage } from "../src/moderation/engine";
 
 type TestMessage = {
 	content: string;
@@ -19,7 +20,6 @@ const testMessages: TestMessage[] = [
 	},
 ];
 
-// Mock global fetch
 global.fetch = jest.fn();
 
 const mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
@@ -113,85 +113,62 @@ describe("isIllegalMessage", () => {
 	});
 });
 
-describe("groupMeWebhookHandler", () => {
-	let mockContext: Partial<Context>;
+describe("handleGroupMeWebhook", () => {
 	const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+	let mockEnv: GroupMeBotEnv;
+
+	function payload(
+		overrides: Partial<GroupMeWebhookPayload> = {},
+	): GroupMeWebhookPayload {
+		return {
+			text: "Hello, how are you?",
+			group_id: "12345",
+			id: "msg_001",
+			sender_id: "user_001",
+			...overrides,
+		};
+	}
 
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockFetch.mockReset();
 
-		mockContext = {
-			req: {
-				json: jest.fn(),
-			} as unknown as Context["req"],
-			env: {
-				GROUPME_ACCESS_TOKEN: "test_token",
-				GROUPME_BOT_ID: "test_bot_id",
-				STAGING: false,
-			} as unknown as Context["env"],
-			json: jest.fn((data, status) => ({
-				data,
-				status,
-			})) as unknown as Context["json"],
+		mockEnv = {
+			GROUPME_ACCESS_TOKEN: "test_token",
+			GROUPME_BOT_ID: "test_bot_id",
+			STAGING: false,
 		};
 	});
 
 	describe("clean messages", () => {
 		test("should return ok status for clean messages", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Hello, how are you?",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
+			const result = await handleGroupMeWebhook(payload(), mockEnv);
 
-			await groupMeWebhookHandler(mockContext as Context);
-
-			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
+			expect(result).toEqual({ body: { status: "ok" }, status: 200 });
 			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
 		test("should handle empty text messages", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
+			const result = await handleGroupMeWebhook(payload({ text: "" }), mockEnv);
 
-			await groupMeWebhookHandler(mockContext as Context);
-
-			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
+			expect(result).toEqual({ body: { status: "ok" }, status: 200 });
 			expect(mockFetch).not.toHaveBeenCalled();
 		});
 
 		test("should handle missing text field", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
+			const result = await handleGroupMeWebhook(
+				payload({ text: undefined }),
+				mockEnv,
+			);
 
-			await groupMeWebhookHandler(mockContext as Context);
-
-			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
+			expect(result).toEqual({ body: { status: "ok" }, status: 200 });
 			expect(mockFetch).not.toHaveBeenCalled();
 		});
 	});
 
 	describe("staging mode", () => {
 		test("should only post bot message in staging mode", async () => {
-			if (mockContext.env) {
-				mockContext.env.STAGING = true;
-			}
-
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Buy my crypto now!",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
+			mockEnv.STAGING = true;
 
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
@@ -199,8 +176,12 @@ describe("groupMeWebhookHandler", () => {
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
-			await groupMeWebhookHandler(mockContext as Context);
+			const result = await handleGroupMeWebhook(
+				payload({ text: "Buy my crypto now!" }),
+				mockEnv,
+			);
 
+			expect(result).toBeUndefined();
 			expect(mockFetch).toHaveBeenCalledTimes(1);
 			expect(mockFetch).toHaveBeenCalledWith(
 				"https://api.groupme.com/v3/bots/post",
@@ -217,13 +198,6 @@ describe("groupMeWebhookHandler", () => {
 
 	describe("production mode - illegal message handling", () => {
 		test("should delete message and remove user for illegal content", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Click the link below to buy crypto",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -250,45 +224,31 @@ describe("groupMeWebhookHandler", () => {
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				status: 200,
-				text: async () => JSON.stringify({ success: true }),
-			} as Response);
-
-			await groupMeWebhookHandler(mockContext as Context);
+			const result = await handleGroupMeWebhook(
+				payload({ text: "Click the link below to buy crypto" }),
+				mockEnv,
+			);
 
 			expect(mockFetch).toHaveBeenCalledTimes(3);
-
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				1,
 				"https://api.groupme.com/v3/groups/12345?token=test_token",
 				undefined,
 			);
-
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				2,
 				"https://api.groupme.com/v3/conversations/12345/messages/msg_001?token=test_token",
 				{ method: "DELETE" },
 			);
-
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				3,
 				"https://api.groupme.com/v3/groups/12345/members/membership_001/remove?token=test_token",
 				{ method: "POST" },
 			);
-
-			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
+			expect(result).toEqual({ body: { status: "ok" }, status: 200 });
 		});
 
 		test("should handle user not found in group", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Buy my crypto",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_999",
-			});
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -303,26 +263,21 @@ describe("groupMeWebhookHandler", () => {
 					}),
 			} as Response);
 
-			await groupMeWebhookHandler(mockContext as Context);
+			const result = await handleGroupMeWebhook(
+				payload({ text: "Buy my crypto", sender_id: "user_999" }),
+				mockEnv,
+			);
 
 			expect(mockFetch).toHaveBeenCalledTimes(1);
-
-			expect(mockContext.json).toHaveBeenCalledWith(
-				{ status: "user not found" },
-				200,
-			);
+			expect(result).toEqual({
+				body: { status: "user not found" },
+				status: 200,
+			});
 		});
 	});
 
 	describe("case sensitivity", () => {
 		test("should detect illegal content regardless of case", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "CLICK THE LINK BELOW",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -340,22 +295,18 @@ describe("groupMeWebhookHandler", () => {
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
-			await groupMeWebhookHandler(mockContext as Context);
+			const result = await handleGroupMeWebhook(
+				payload({ text: "CLICK THE LINK BELOW" }),
+				mockEnv,
+			);
 
 			expect(mockFetch).toHaveBeenCalled();
-			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
+			expect(result).toEqual({ body: { status: "ok" }, status: 200 });
 		});
 	});
 
 	describe("real-world spam examples", () => {
 		test("should handle car selling scam", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Clean used 2012 Honda Accord For Sale For $3000 Perfect condition no problems at all Just need some space I bought a new car 2016 Honda accord Dm for more information and if you're interested (585) 365-3185",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -373,20 +324,18 @@ describe("groupMeWebhookHandler", () => {
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
-			await groupMeWebhookHandler(mockContext as Context);
+			const result = await handleGroupMeWebhook(
+				payload({
+					text: "Clean used 2012 Honda Accord For Sale For $3000 Perfect condition no problems at all Just need some space I bought a new car 2016 Honda accord Dm for more information and if you're interested (585) 365-3185",
+				}),
+				mockEnv,
+			);
 
 			expect(mockFetch).toHaveBeenCalledTimes(3);
-			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
+			expect(result).toEqual({ body: { status: "ok" }, status: 200 });
 		});
 
 		test("should handle ticket scam", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Giving away free Billie Eilish tickets! DM me for details",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -404,37 +353,28 @@ describe("groupMeWebhookHandler", () => {
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
-			await groupMeWebhookHandler(mockContext as Context);
+			const result = await handleGroupMeWebhook(
+				payload({
+					text: "Giving away free Billie Eilish tickets! DM me for details",
+				}),
+				mockEnv,
+			);
 
 			expect(mockFetch).toHaveBeenCalledTimes(3);
-			expect(mockContext.json).toHaveBeenCalledWith({ status: "ok" }, 200);
+			expect(result).toEqual({ body: { status: "ok" }, status: 200 });
 		});
 	});
 
 	describe("error handling", () => {
 		test("should handle fetch errors when getting group data", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Buy crypto now",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
 			mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
 			await expect(
-				groupMeWebhookHandler(mockContext as Context),
+				handleGroupMeWebhook(payload({ text: "Buy crypto now" }), mockEnv),
 			).rejects.toThrow("Network error");
 		});
 
 		test("should handle fetch errors when deleting message", async () => {
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Click the link below",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -449,7 +389,10 @@ describe("groupMeWebhookHandler", () => {
 			mockFetch.mockRejectedValueOnce(new Error("Delete failed"));
 
 			await expect(
-				groupMeWebhookHandler(mockContext as Context),
+				handleGroupMeWebhook(
+					payload({ text: "Click the link below" }),
+					mockEnv,
+				),
 			).rejects.toThrow("Delete failed");
 		});
 	});
@@ -458,13 +401,6 @@ describe("groupMeWebhookHandler", () => {
 		test("should post rare bot message when random condition is met", async () => {
 			const originalRandom = Math.random;
 			Math.random = jest.fn(() => 0.462926);
-
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Click the link below to buy crypto",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
 
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
@@ -483,10 +419,12 @@ describe("groupMeWebhookHandler", () => {
 				text: async () => JSON.stringify({ success: true }),
 			} as Response);
 
-			await groupMeWebhookHandler(mockContext as Context);
+			await handleGroupMeWebhook(
+				payload({ text: "Click the link below to buy crypto" }),
+				mockEnv,
+			);
 
 			expect(mockFetch).toHaveBeenCalledTimes(4);
-
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				4,
 				"https://api.groupme.com/v3/bots/post",
@@ -507,20 +445,8 @@ describe("groupMeWebhookHandler", () => {
 		test("should send alert when safeFetch fails", async () => {
 			mockConsoleWarn.mockClear();
 			mockConsoleLog.mockClear();
-
-			if (mockContext.env) {
-				mockContext.env.GROUPME_BOT_ID_ERROR_ALERTS = "error_bot_id";
-			}
-
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Click the link below",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
+			mockEnv.GROUPME_BOT_ID_ERROR_ALERTS = "error_bot_id";
 			mockFetch.mockRejectedValueOnce(new Error("Network error"));
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -528,15 +454,16 @@ describe("groupMeWebhookHandler", () => {
 			} as Response);
 
 			await expect(
-				groupMeWebhookHandler(mockContext as Context),
+				handleGroupMeWebhook(
+					payload({ text: "Click the link below" }),
+					mockEnv,
+				),
 			).rejects.toThrow("Network error");
 
 			expect(mockConsoleWarn).toHaveBeenCalledWith(
 				expect.stringMatching(/General error handling blocked content/),
 				expect.anything(),
 			);
-
-			expect(mockFetch).toHaveBeenCalled();
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				2,
 				"https://api.groupme.com/v3/bots/post",
@@ -548,17 +475,7 @@ describe("groupMeWebhookHandler", () => {
 		});
 
 		test("should send alert on 401 unauthorized", async () => {
-			if (mockContext.env) {
-				mockContext.env.GROUPME_BOT_ID_ERROR_ALERTS = "error_bot_id";
-			}
-
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Click the link below",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
+			mockEnv.GROUPME_BOT_ID_ERROR_ALERTS = "error_bot_id";
 			mockFetch.mockResolvedValueOnce({
 				ok: false,
 				status: 401,
@@ -569,7 +486,6 @@ describe("groupMeWebhookHandler", () => {
 						},
 					}),
 			} as Response);
-
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				status: 200,
@@ -577,10 +493,12 @@ describe("groupMeWebhookHandler", () => {
 			} as Response);
 
 			await expect(
-				groupMeWebhookHandler(mockContext as Context),
+				handleGroupMeWebhook(
+					payload({ text: "Click the link below" }),
+					mockEnv,
+				),
 			).rejects.toThrow();
 
-			expect(mockFetch).toHaveBeenCalled();
 			expect(mockFetch).toHaveBeenNthCalledWith(
 				2,
 				"https://api.groupme.com/v3/bots/post",
@@ -592,21 +510,13 @@ describe("groupMeWebhookHandler", () => {
 		});
 
 		test("should not notify when error alert env var is not set", async () => {
-			if (mockContext.env) {
-				delete mockContext.env.GROUPME_BOT_ID_ERROR_ALERTS;
-			}
-
-			(mockContext.req?.json as jest.Mock)?.mockResolvedValue({
-				text: "Click the link below",
-				group_id: "12345",
-				id: "msg_001",
-				sender_id: "user_001",
-			});
-
 			mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
 			await expect(
-				groupMeWebhookHandler(mockContext as Context),
+				handleGroupMeWebhook(
+					payload({ text: "Click the link below" }),
+					mockEnv,
+				),
 			).rejects.toThrow("Network error");
 
 			expect(mockFetch).toHaveBeenCalledTimes(1);

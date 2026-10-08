@@ -13,7 +13,7 @@
 		"test": "jest",
 		"test:coverage": "jest --coverage",
 		"test:coverage:ci": "jest --coverage --ci",
-		"check": "node --import tsx test/blockCheck.ts"
+		"check": "node --import tsx bot/test/blockCheck.ts"
 	},
 	"dependencies": {
 		"hono": "^4.6.20"

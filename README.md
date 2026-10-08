@@ -9,20 +9,28 @@ Additions to the filter are welcome, open a PR with changes to one or more of th
 - Exact words that would constitute a removal.
   - Ex. "giveaway", "promo", "tate mcrae"
   - "tate mcrae" is considered one word because "tate" will always appear next to "mcrae"
-- Edit `src/blocked-words.ts`
+- Edit `bot/src/moderation/blocked-words.ts`
 
 **Blocked Phrases**
 
 - Exact phrases that would constitute a removal.
   - Ex. "click the link below", "free cash giveaway"
-- Edit `src/blocked-phrases.ts`
+- Edit `bot/src/moderation/blocked-phrases.ts`
 
 **Blocked Sequences**
 
 - Groupings of words that when appearing in the given order constitutes a removal. Only cares about the order in which the words appear, not what might be between them.
   - Ex. "tyler the creator tickets", "free macbook air", "selling lease"
   - This would catch the messages: "Hi! I'm selling my lease." and "Hi! My roommate is selling her lease."
-- Edit `src/blocked-sequences.ts`
+- Edit `bot/src/moderation/blocked-sequences.ts`
+
+## Repository Layout
+
+- `web/`: Hono Worker routes and HTTP-facing app code. The Worker entrypoint is `web/src/index.ts`.
+- `bot/`: GroupMe moderation behavior, GroupMe API client code, webhook payload handling, and bot tests.
+- `db/`: D1 migration location, schema entrypoint, repository namespace, and database test helpers.
+
+Import direction should stay one-way: `web` can call into `bot` and `db`, `bot` can call into `db` when persistence is needed, and `db` should not import from `web` or `bot`.
 
 ## Cloudflare Workers Setup
 
@@ -46,7 +54,7 @@ The `staging` branch is automatically deployed on the [testing GroupMe](https://
 
 ## Testing
 
-Review the docs on [testing](/test/TESTING.md).
+Review the docs on [testing](/bot/test/TESTING.md).
 
 ## Contributing
 

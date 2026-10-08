@@ -1,4 +1,4 @@
-import containsBlockedWord from "../src/blocked-words";
+import containsBlockedWord from "../src/moderation/blocked-words";
 
 describe(containsBlockedWord, () => {
 	test("nude", () => {

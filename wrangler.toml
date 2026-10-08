@@ -1,5 +1,5 @@
 name = "groupme-bot"
-main = "src/index.ts"
+main = "web/src/index.ts"
 compatibility_date = "2025-08-23"
 
 [observability]

@@ -1,4 +1,4 @@
-import containsBlockedPhrase from "../src/blocked-phrases";
+import containsBlockedPhrase from "../src/moderation/blocked-phrases";
 
 describe(containsBlockedPhrase, () => {
 	test("click the link below", () => {
